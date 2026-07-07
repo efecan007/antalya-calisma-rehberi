@@ -1,0 +1,74 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function RegisterPage() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      await register(email, password, name);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Kayıt başarısız');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="h-full flex items-center justify-center">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3 p-6 border border-gray-200 rounded-lg">
+        <h1 className="text-xl font-semibold text-gray-900">Kayıt Ol</h1>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <input
+          type="text"
+          placeholder="Ad Soyad"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+        <input
+          type="email"
+          placeholder="E-posta"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          placeholder="Şifre"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+        >
+          {submitting ? 'Kaydediliyor...' : 'Kayıt Ol'}
+        </button>
+        <p className="text-sm text-gray-500 text-center">
+          Zaten hesabın var mı?{' '}
+          <Link to="/giris" className="text-brand-600 hover:underline">
+            Giriş yap
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
+}

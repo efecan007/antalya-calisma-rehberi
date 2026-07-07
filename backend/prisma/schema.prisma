@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlaceType {
+  HOTEL
+  CAFE
+  LIBRARY
+}
+
+enum Region {
+  MURATPASA
+  KONYAALTI
+  KEPEZ
+  LARA
+  KALEICI
+  DOSEMEALTI
+  AKSU
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+
+  places  Place[]
+  reviews Review[]
+}
+
+model Place {
+  id          Int       @id @default(autoincrement())
+  name        String
+  type        PlaceType
+  region      Region
+  address     String
+  lat         Float
+  lng         Float
+  description String?
+  priceLevel  Int       @default(2)
+  imageUrl    String?
+  createdById Int?
+  createdBy   User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+
+  reviews Review[]
+}
+
+model Review {
+  id               Int      @id @default(autoincrement())
+  placeId          Int
+  place            Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  internetSpeed    Int
+  outletCount      Int
+  noiseLevel       Int
+  coffeeQuality    Int
+  workEnvironment  Int
+  priceLevel       Int
+  overallRating    Int
+  comment          String?
+  createdAt        DateTime @default(now())
+
+  @@unique([placeId, userId])
+}
