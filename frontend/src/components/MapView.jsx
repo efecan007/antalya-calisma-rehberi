@@ -1,7 +1,25 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { regionLabel, typeLabel } from '../constants';
+
+// Harita, gizli (display:none) bir konteynerin içinde mount edildiğinde Leaflet
+// boyutu 0x0 olarak hesaplar; konteyner sonradan görünür olduğunda (ör. mobilde
+// Liste/Harita sekmesi değiştiğinde) tile'lar bozuk kalır. ResizeObserver ile
+// konteyner boyutu her değiştiğinde invalidateSize() çağrılır.
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
 
 const markerIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -18,6 +36,7 @@ const ANTALYA_CENTER = [36.8969, 30.7133];
 export default function MapView({ places, activeId, onMarkerHover }) {
   return (
     <MapContainer center={ANTALYA_CENTER} zoom={12} className="w-full h-full">
+      <MapResizeHandler />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

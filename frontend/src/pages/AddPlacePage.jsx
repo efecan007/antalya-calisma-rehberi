@@ -101,18 +101,21 @@ export default function AddPlacePage() {
 
   if (suggested) {
     return (
-      <div className="h-full overflow-y-auto p-6 max-w-xl mx-auto text-center">
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Öneriniz Alındı</h1>
-        <p className="text-sm text-gray-600">
-          Mekan öneriniz admin onayına gönderildi. Onaylandığında herkese açık listede görünecek.
-        </p>
+      <div className="h-full overflow-y-auto p-6 bg-gray-50">
+        <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-card p-6 text-center">
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Öneriniz Alındı</h1>
+          <p className="text-sm text-gray-600">
+            Mekan öneriniz admin onayına gönderildi. Onaylandığında herkese açık listede görünecek.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6 max-w-xl mx-auto">
-      <h1 className="text-xl font-semibold text-gray-900 mb-4">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 bg-gray-50">
+      <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-card p-5 sm:p-6">
+        <h1 className="text-xl font-semibold text-gray-900 mb-4">
         {isEdit ? 'Mekanı Düzenle' : isAdmin ? 'Yeni Mekan Ekle' : 'Mekan Öner'}
       </h1>
       {!isEdit && !isAdmin && (
@@ -128,13 +131,13 @@ export default function AddPlacePage() {
           required
           value={form.name}
           onChange={(e) => update('name', e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <div className="grid grid-cols-2 gap-3">
           <select
             value={form.type}
             onChange={(e) => update('type', e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
           >
             {PLACE_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -145,7 +148,7 @@ export default function AddPlacePage() {
           <select
             value={form.region}
             onChange={(e) => update('region', e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
           >
             {REGIONS.map((r) => (
               <option key={r.value} value={r.value}>
@@ -160,7 +163,7 @@ export default function AddPlacePage() {
           required
           value={form.address}
           onChange={(e) => update('address', e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -170,7 +173,7 @@ export default function AddPlacePage() {
             required
             value={form.lat}
             onChange={(e) => update('lat', e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
           />
           <input
             type="number"
@@ -179,7 +182,7 @@ export default function AddPlacePage() {
             required
             value={form.lng}
             onChange={(e) => update('lng', e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="border border-gray-200 rounded-md px-3 py-2 text-sm"
           />
         </div>
         <p className="text-xs text-gray-400">
@@ -200,7 +203,7 @@ export default function AddPlacePage() {
           placeholder="Açıklama (opsiyonel)"
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
           rows={3}
         />
 
@@ -210,7 +213,7 @@ export default function AddPlacePage() {
             <select
               value={form.outletLevel}
               onChange={(e) => update('outletLevel', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mt-1"
+              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mt-1"
             >
               {LEVEL_OPTIONS.map((l) => (
                 <option key={l.value} value={l.value}>
@@ -224,7 +227,7 @@ export default function AddPlacePage() {
             <select
               value={form.noiseLevel}
               onChange={(e) => update('noiseLevel', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mt-1"
+              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mt-1"
             >
               {NOISE_LEVEL_OPTIONS.map((l) => (
                 <option key={l.value} value={l.value}>
@@ -240,14 +243,14 @@ export default function AddPlacePage() {
           placeholder="Çalışma saatleri (ör. 08:00 - 22:00)"
           value={form.openingHours}
           onChange={(e) => update('openingHours', e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
 
         <textarea
           placeholder="Fotoğraf URL'leri (her satıra bir tane)"
           value={form.photoUrlsText}
           onChange={(e) => update('photoUrlsText', e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
           rows={2}
         />
 
@@ -297,11 +300,12 @@ export default function AddPlacePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+          className="bg-brand-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
         >
           {submitting ? 'Kaydediliyor...' : isEdit ? 'Güncelle' : isAdmin ? 'Mekanı Kaydet' : 'Öneriyi Gönder'}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

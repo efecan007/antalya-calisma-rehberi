@@ -6,9 +6,9 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="h-full p-6 max-w-md mx-auto">
+    <div className="h-full p-6 max-w-md mx-auto bg-gray-50">
       <h1 className="text-xl font-semibold text-gray-900 mb-4">Profilim</h1>
-      <div className="border border-gray-200 rounded-lg p-4 space-y-2 text-sm">
+      <div className="bg-white rounded-2xl shadow-card p-5 space-y-2 text-sm">
         <p>
           <span className="text-gray-500">Ad Soyad:</span> {user.name}
         </p>

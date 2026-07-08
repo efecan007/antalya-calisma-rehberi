@@ -32,7 +32,7 @@ export default function ReviewForm({ placeId, onSubmitted }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 space-y-3">
+    <form onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 space-y-3">
       <h3 className="font-medium text-gray-900">Değerlendirme Yap</h3>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -54,13 +54,13 @@ export default function ReviewForm({ placeId, onSubmitted }) {
         placeholder="Yorumunuz (opsiyonel)"
         value={form.comment}
         onChange={(e) => updateField('comment', e.target.value)}
-        className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+        className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white"
         rows={3}
       />
       <button
         type="submit"
         disabled={submitting}
-        className="bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+        className="bg-brand-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
       >
         {submitting ? 'Gönderiliyor...' : 'Gönder'}
       </button>

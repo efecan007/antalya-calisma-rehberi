@@ -72,12 +72,12 @@ export default function AdminPage() {
   if (loading) return <p className="p-6 text-sm text-gray-500">Yükleniyor...</p>;
 
   return (
-    <div className="h-full overflow-y-auto p-6 max-w-4xl mx-auto space-y-8">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 max-w-4xl mx-auto space-y-8 bg-gray-50">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Admin Paneli</h1>
         <Link
           to="/mekan-ekle"
-          className="text-sm bg-brand-600 text-white px-3 py-1.5 rounded-md hover:bg-brand-700"
+          className="text-sm bg-brand-600 text-white px-3 py-1.5 rounded-full transition hover:bg-brand-700"
         >
           + Yeni Mekan Ekle
         </Link>
@@ -86,7 +86,7 @@ export default function AdminPage() {
       {stats && (
         <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {Object.entries(STAT_LABELS).map(([key, label]) => (
-            <div key={key} className="border border-gray-200 rounded-lg p-3 text-center">
+            <div key={key} className="bg-white shadow-card rounded-xl p-3 text-center">
               <p className="text-2xl font-semibold text-gray-900">{stats[key]}</p>
               <p className="text-xs text-gray-500">{label}</p>
             </div>
@@ -101,7 +101,7 @@ export default function AdminPage() {
         )}
         <div className="space-y-2">
           {pendingPlaces.map((place) => (
-            <div key={place.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div key={place.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900">{place.name}</p>
                 <p className="text-xs text-gray-500">
@@ -111,13 +111,13 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => approve(place.id)}
-                  className="text-sm bg-emerald-600 text-white px-3 py-1.5 rounded-md hover:bg-emerald-700"
+                  className="text-sm bg-emerald-600 text-white px-3 py-1.5 rounded-full transition hover:bg-emerald-700"
                 >
                   Onayla
                 </button>
                 <button
                   onClick={() => reject(place.id)}
-                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
+                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
                   Reddet
                 </button>
@@ -131,7 +131,7 @@ export default function AdminPage() {
         <h2 className="font-medium text-gray-900 mb-3">Tüm Mekanlar ({places.length})</h2>
         <div className="space-y-2">
           {places.map((place) => (
-            <div key={place.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div key={place.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900">{place.name}</p>
                 <p className="text-xs text-gray-500">
@@ -141,13 +141,13 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <Link
                   to={`/admin/mekanlar/${place.id}/duzenle`}
-                  className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200"
+                  className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full transition hover:bg-gray-200"
                 >
                   Düzenle
                 </Link>
                 <button
                   onClick={() => deletePlace(place.id)}
-                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
+                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
                   Sil
                 </button>
@@ -161,7 +161,7 @@ export default function AdminPage() {
         <h2 className="font-medium text-gray-900 mb-3">Yorumlar ({reviews.length})</h2>
         <div className="space-y-2">
           {reviews.map((review) => (
-            <div key={review.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div key={review.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-900">
                   <span className="font-medium">{review.user?.name}</span> ·{' '}
@@ -172,7 +172,7 @@ export default function AdminPage() {
               </div>
               <button
                 onClick={() => deleteReview(review.id)}
-                className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
+                className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
               >
                 Sil
               </button>
@@ -185,7 +185,7 @@ export default function AdminPage() {
         <h2 className="font-medium text-gray-900 mb-3">Kullanıcılar ({users.length})</h2>
         <div className="space-y-2">
           {users.map((u) => (
-            <div key={u.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <div key={u.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-900">
                   <span className="font-medium">{u.name}</span>{' '}
@@ -196,7 +196,7 @@ export default function AdminPage() {
               {u.id !== currentUser?.id && (
                 <button
                   onClick={() => deleteUser(u.id)}
-                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
+                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
                   Sil
                 </button>

@@ -8,7 +8,7 @@ export default function ReviewList({ reviews }) {
   return (
     <div className="space-y-4">
       {reviews.map((review) => (
-        <div key={review.id} className="border border-gray-200 rounded-lg p-3">
+        <div key={review.id} className="bg-gray-50 rounded-xl p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-sm text-gray-900">{review.user?.name || 'Kullanıcı'}</span>
             <span className="text-xs text-gray-400">

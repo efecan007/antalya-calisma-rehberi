@@ -13,6 +13,14 @@ const STATUS_LABELS = {
   REJECTED: { text: 'Reddedildi', className: 'bg-red-100 text-red-700' },
 };
 
+const AMENITY_BADGES = [
+  { key: 'hasWifi', label: 'Wi-Fi' },
+  { key: 'hasAC', label: 'Klima' },
+  { key: 'meetingSuitable', label: 'Toplantıya Uygun' },
+  { key: 'laptopFriendly', label: 'Uzun Süre Laptop' },
+  { key: 'deskFriendly', label: 'Çalışma Masası Uygun' },
+];
+
 export default function PlaceDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -38,87 +46,95 @@ export default function PlaceDetailPage() {
   const alreadyReviewed = user && place.reviews.some((r) => r.user?.id === user.id);
 
   return (
-    <div className="h-full overflow-y-auto p-6 max-w-3xl mx-auto">
-      <Link to="/mekanlar" className="text-sm text-brand-600 hover:underline">
-        ← Keşfete dön
-      </Link>
-      <div className="flex items-center gap-2 mt-2">
-        <h1 className="text-2xl font-semibold text-gray-900">{place.name}</h1>
-        <FavoriteButton placeId={place.id} className="text-2xl" />
-        {STATUS_LABELS[place.status] && (
-          <span className={`text-xs px-2 py-0.5 rounded ${STATUS_LABELS[place.status].className}`}>
-            {STATUS_LABELS[place.status].text}
-          </span>
-        )}
-      </div>
-      <p className="text-sm text-gray-500 mt-1">
-        {typeLabel(place.type)} · {regionLabel(place.region)} · {place.address}
-      </p>
-      <div className="mt-2">
-        <RatingStars value={place.ratings.overallRating} />
-        <span className="text-xs text-gray-400 ml-2">{place.ratings.reviewCount} değerlendirme</span>
-      </div>
+    <div className="h-full overflow-y-auto bg-gray-50">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6">
+        <Link to="/mekanlar" className="text-sm text-brand-600 hover:underline">
+          ← Keşfete dön
+        </Link>
 
-      {place.photoUrls?.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto mt-4">
-          {place.photoUrls.map((url) => (
-            <img key={url} src={url} alt={place.name} className="h-32 w-48 object-cover rounded-lg flex-shrink-0" />
-          ))}
-        </div>
-      )}
-
-      {place.description && <p className="mt-4 text-gray-700">{place.description}</p>}
-
-      {place.openingHours && (
-        <p className="mt-2 text-sm text-gray-600">
-          <span className="text-gray-500">Çalışma Saatleri:</span> {place.openingHours}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2 mt-3">
-        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-          Priz: {levelLabel(place.outletLevel)}
-        </span>
-        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-          Sessizlik: {noiseLevelLabel(place.noiseLevel)}
-        </span>
-        {place.hasWifi && <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Wi-Fi</span>}
-        {place.hasAC && <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Klima</span>}
-        {place.meetingSuitable && (
-          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Toplantıya Uygun</span>
-        )}
-        {place.laptopFriendly && (
-          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Uzun Süre Laptop</span>
-        )}
-        {place.deskFriendly && (
-          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Çalışma Masası Uygun</span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-6">
-        {RATING_CRITERIA.filter((c) => c.field !== 'overallRating').map((c) => (
-          <div key={c.field} className="border border-gray-200 rounded-lg p-2 text-center">
-            <p className="text-xs text-gray-500">{c.label}</p>
-            <p className="font-semibold text-gray-900">{place.ratings[c.field] ?? '-'}</p>
+        <div className="bg-white rounded-2xl shadow-card p-5 sm:p-6 mt-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-semibold text-gray-900">{place.name}</h1>
+            <FavoriteButton placeId={place.id} className="text-2xl" />
+            {STATUS_LABELS[place.status] && (
+              <span className={`text-xs px-2.5 py-1 rounded-full ${STATUS_LABELS[place.status].className}`}>
+                {STATUS_LABELS[place.status].text}
+              </span>
+            )}
           </div>
-        ))}
-      </div>
-
-      <h2 className="font-medium text-gray-900 mb-3">Değerlendirmeler</h2>
-      <ReviewList reviews={place.reviews} />
-
-      <div className="mt-6">
-        {!user && (
-          <p className="text-sm text-gray-500">
-            Değerlendirme yapmak için <Link to="/giris" className="text-brand-600 hover:underline">giriş yapın</Link>.
+          <p className="text-sm text-gray-500 mt-1">
+            {typeLabel(place.type)} · {regionLabel(place.region)} · {place.address}
           </p>
-        )}
-        {user && alreadyReviewed && (
-          <p className="text-sm text-gray-500">Bu mekan için zaten bir değerlendirme yaptınız.</p>
-        )}
-        {user && !alreadyReviewed && (
-          <ReviewForm placeId={place.id} onSubmitted={fetchPlace} />
-        )}
+          <div className="mt-2">
+            <RatingStars value={place.ratings.overallRating} />
+            <span className="text-xs text-gray-400 ml-2">{place.ratings.reviewCount} değerlendirme</span>
+          </div>
+
+          {place.photoUrls?.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto mt-4 -mx-1 px-1">
+              {place.photoUrls.map((url) => (
+                <img
+                  key={url}
+                  src={url}
+                  alt={place.name}
+                  className="h-32 w-48 object-cover rounded-xl flex-shrink-0 shadow-card"
+                />
+              ))}
+            </div>
+          )}
+
+          {place.description && <p className="mt-4 text-gray-700">{place.description}</p>}
+
+          {place.openingHours && (
+            <p className="mt-2 text-sm text-gray-600">
+              <span className="text-gray-500">Çalışma Saatleri:</span> {place.openingHours}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+              Priz: {levelLabel(place.outletLevel)}
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+              Sessizlik: {noiseLevelLabel(place.noiseLevel)}
+            </span>
+            {AMENITY_BADGES.filter((a) => place[a.key]).map((a) => (
+              <span key={a.key} className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                {a.label}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+            {RATING_CRITERIA.filter((c) => c.field !== 'overallRating').map((c) => (
+              <div key={c.field} className="bg-gray-50 rounded-xl p-2.5 text-center">
+                <p className="text-xs text-gray-500">{c.label}</p>
+                <p className="font-semibold text-gray-900">{place.ratings[c.field] ?? '-'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-card p-5 sm:p-6 mt-4">
+          <h2 className="font-medium text-gray-900 mb-3">Değerlendirmeler</h2>
+          <ReviewList reviews={place.reviews} />
+
+          <div className="mt-6">
+            {!user && (
+              <p className="text-sm text-gray-500">
+                Değerlendirme yapmak için{' '}
+                <Link to="/giris" className="text-brand-600 hover:underline">
+                  giriş yapın
+                </Link>
+                .
+              </p>
+            )}
+            {user && alreadyReviewed && (
+              <p className="text-sm text-gray-500">Bu mekan için zaten bir değerlendirme yaptınız.</p>
+            )}
+            {user && !alreadyReviewed && <ReviewForm placeId={place.id} onSubmitted={fetchPlace} />}
+          </div>
+        </div>
       </div>
     </div>
   );

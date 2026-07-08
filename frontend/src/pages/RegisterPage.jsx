@@ -26,8 +26,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="h-full flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3 p-6 border border-gray-200 rounded-lg">
+    <div className="h-full flex items-center justify-center bg-gray-50">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3 p-7 bg-white rounded-2xl shadow-card">
         <h1 className="text-xl font-semibold text-gray-900">Kayıt Ol</h1>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <input
@@ -36,7 +36,7 @@ export default function RegisterPage() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <input
           type="email"
@@ -44,7 +44,7 @@ export default function RegisterPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <input
           type="password"
@@ -53,12 +53,12 @@ export default function RegisterPage() {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+          className="w-full bg-brand-600 text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
         >
           {submitting ? 'Kaydediliyor...' : 'Kayıt Ol'}
         </button>
