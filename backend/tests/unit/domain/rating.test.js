@@ -1,5 +1,5 @@
 const Rating = require('../../../src/modules/reviews/domain/Rating');
-const { ValidationError } = require('../../../src/shared/domain/errors');
+const { ValidationError } = require('../../../src/common/errors');
 
 describe('Rating value object', () => {
   it.each([1, 2, 3, 4, 5])('%i gibi geçerli bir puanı kabul eder', (value) => {

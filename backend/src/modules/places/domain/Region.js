@@ -1,4 +1,4 @@
-const { ValidationError } = require('../../../shared/domain/errors');
+const { ValidationError } = require('../../../common/errors');
 
 const VALUES = ['MURATPASA', 'KONYAALTI', 'KEPEZ', 'LARA', 'KALEICI', 'DOSEMEALTI', 'AKSU', 'BELEK'];
 

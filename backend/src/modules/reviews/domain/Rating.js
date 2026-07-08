@@ -1,4 +1,4 @@
-const { ValidationError } = require('../../../shared/domain/errors');
+const { ValidationError } = require('../../../common/errors');
 
 const MIN = 1;
 const MAX = 5;

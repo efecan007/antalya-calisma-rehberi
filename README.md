@@ -12,27 +12,36 @@ Antalya'da uzaktan çalışmaya uygun otel lobisi, kafe ve kütüphaneleri harit
 
 ## Mimari
 
-Backend, **tek bir deploy edilebilir birim** (monolith) olarak kalırken içeride **modüllere** ayrılmış bir **Modular Monolith**'tir. Her modül (`users`, `places`, `reviews`) kendi içinde **Clean/Hexagonal Architecture** katmanlarına sahiptir:
+Backend, **tek bir deploy edilebilir birim** (monolith) olarak kalırken içeride **modüllere** ayrılmış bir **Modular Monolith**'tir. Her modül kendi **controller / service / repository / entity** yapısına sahiptir (Clean Architecture'daki `infrastructure` / `application` / `domain` klasörleriyle karşılık gelir):
 
 ```
 backend/src/
-├── modules/
-│   ├── users/
-│   │   ├── domain/           saf iş kuralları: User entity, UserRepository "port"u
-│   │   ├── application/      use-case'ler (registerUser, loginUser, getCurrentUser)
-│   │   └── infrastructure/   Express route/controller + PrismaUserRepository "adapter"ı
-│   ├── places/                (Place, PlaceType, Region + CRUD use-case'leri + cache-aside)
-│   └── reviews/                (Rating value object, RatingAggregator, review use-case'leri)
-└── shared/
-    ├── domain/errors.js       tipli hata sınıfları (NotFoundError, ValidationError, ...)
-    └── infrastructure/        Prisma client, Redis client + cache helper, JWT/bcrypt, Express app
+├── app.js                    Express composition root: tüm modül router'larını mount eder
+├── server.js                 process entry point (app.listen)
+├── common/
+│   ├── errors.js             tipli hata sınıfları (NotFoundError, ValidationError, ...)
+│   ├── guards/                requireAuth / requireAdmin / optionalAuth (JWT middleware)
+│   ├── filters/                notFoundHandler / errorMiddleware (merkezi hata yakalama)
+│   └── security/               jwt.js, password.js
+├── database/
+│   └── prisma.client.js       paylaşılan PrismaClient instance'ı
+└── modules/
+    ├── auth/                   register / login / me (JWT üretimi) — auth.service.js
+    ├── users/                  User entity + repository (auth ve diğer modüller tüketir)
+    ├── places/                 Place entity + temel CRUD — places.service.js
+    ├── suggestions/            mekan önerisi onay/red akışı — suggestions.service.js
+    ├── reviews/                yorum + puan — reviews.service.js
+    ├── favorites/              favori ekle/çıkar/listele — favorites.service.js
+    ├── admin/                  yorum moderasyonu (tüm yorumları listeleme) — admin.service.js
+    └── cache/                  Redis client + cache-aside helper — cache.service.js
 ```
 
-- **Domain katmanı** hiçbir framework'e (Express, Prisma) bağımlı değildir; yalnızca entity'ler, value object'ler (ör. `Rating` 1-5 aralığını kendi kendine doğrular) ve **Repository Pattern** ile tanımlanmış port'lar (arayüzler) içerir.
-- **Application katmanı** use-case sınıflarından oluşur; iş kurallarını (ör. "bir kullanıcı bir mekana yalnızca bir kez yorum yapabilir", "bir mekanı yalnızca sahibi veya admin silebilir") burada uygular ve yalnızca repository *port*'larına bağımlıdır — bu sayede DB olmadan, sahte (in-memory) repository'lerle unit test edilebilir.
-- **Infrastructure katmanı** Prisma repository implementasyonlarını (port'ları gerçekleştiren "adapter"lar), Express controller/route'larını ve Redis/JWT/bcrypt gibi dış dünya bağlantılarını barındırır.
-- **DDD** mantığı: her modülün kendi domain dili vardır (`Place`, `Review`, `Rating`, `PlaceType`, `Region`); ortalama puan hesaplama gibi iş kuralları `RatingAggregator` domain servisinde tek yerde yaşar (DRY).
-- **Redis cache**: `GET /api/places` ve `GET /api/places/:id` sonuçları cache-aside deseniyle (`shared/infrastructure/cache/cache.js`) 60 saniye cache'lenir; bir mekan/yorum oluşturulduğunda, güncellendiğinde veya silindiğinde ilgili cache anahtarları invalide edilir. Redis'e erişilemezse sistem cache'siz (doğrudan DB'den) çalışmaya devam eder — cache bir "nice-to-have"dir, kritik yol değildir.
+Her modülün `infrastructure/` klasöründe bir `*.controller.js` (HTTP handler'ları) ve `*.routes.js` (Express router) bulunur; `application/` klasöründeki `*.service.js` dosyası o modülün tüm iş kurallarını tek yerde toplar (ör. `places.service.js` → createPlace/getPlace/listPlaces/updatePlace/deletePlace).
+
+- **Domain katmanı** (`domain/` alt klasörleri) hiçbir framework'e (Express, Prisma) bağımlı değildir; yalnızca entity'ler, value object'ler (ör. `Rating` 1-5 aralığını kendi kendine doğrular) ve **Repository Pattern** ile tanımlanmış port'lar (arayüzler) içerir.
+- **Service katmanı** yalnızca repository *port*'larına bağımlıdır — bu sayede DB olmadan, sahte (in-memory) repository'lerle unit test edilebilir.
+- **Modüller arası bağımlılık**: bazı endpoint'ler birden fazla modülün sorumluluğunu birleştirir (ör. `POST /api/places/:id/reviews` places altında yaşar ama reviews modülünün controller'ını kullanır; `GET /api/places/pending` ve `/:id/approve|reject` suggestions modülünden `places.routes.js`'e mount edilir; `GET /api/reviews` admin modülünden `reviews.routes.js`'e mount edilir). Bu, dış API sözleşmesini (URL yapısını) değiştirmeden modülleri ayırmayı sağlar.
+- **Redis cache** (`modules/cache/`): `GET /api/places` ve `GET /api/places/:id` sonuçları cache-aside deseniyle 60 saniye cache'lenir; bir mekan/yorum oluşturulduğunda, güncellendiğinde veya silindiğinde ilgili cache anahtarları invalide edilir. Redis'e erişilemezse sistem cache'siz (doğrudan DB'den) çalışmaya devam eder — cache bir "nice-to-have"dir, kritik yol değildir.
 
 ## Testler (Test Pyramid)
 

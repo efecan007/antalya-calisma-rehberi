@@ -4,7 +4,7 @@
  */
 const request = require('supertest');
 const { PrismaClient } = require('@prisma/client');
-const { createApp } = require('../../src/shared/infrastructure/http/expressApp');
+const { createApp } = require('../../src/app');
 
 const prisma = new PrismaClient();
 const app = createApp();

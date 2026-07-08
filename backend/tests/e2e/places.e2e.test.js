@@ -4,9 +4,9 @@
  */
 const request = require('supertest');
 const { PrismaClient } = require('@prisma/client');
-const { createApp } = require('../../src/shared/infrastructure/http/expressApp');
-const { invalidate } = require('../../src/shared/infrastructure/cache/cache');
-const { getRedisClient } = require('../../src/shared/infrastructure/cache/redisClient');
+const { createApp } = require('../../src/app');
+const { invalidate } = require('../../src/modules/cache/cache.service');
+const { getRedisClient } = require('../../src/modules/cache/redis.client');
 
 const prisma = new PrismaClient();
 const app = createApp();

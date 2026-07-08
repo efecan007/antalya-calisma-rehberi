@@ -3,8 +3,8 @@
  * Önkoşul: `docker compose up -d redis` (veya tüm stack) ayakta olmalı ve
  * REDIS_URL ortam değişkeni o Redis'i göstermeli.
  */
-const cache = require('../../../src/shared/infrastructure/cache/cache');
-const { getRedisClient } = require('../../../src/shared/infrastructure/cache/redisClient');
+const cache = require('../../../src/modules/cache/cache.service');
+const { getRedisClient } = require('../../../src/modules/cache/redis.client');
 
 afterAll(async () => {
   await getRedisClient().quit();
