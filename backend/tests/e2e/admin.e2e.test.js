@@ -41,6 +41,14 @@ afterAll(async () => {
 });
 
 describe('Admin dashboard/users (e2e)', () => {
+  it('token olmadan dashboard/users 401 döner', async () => {
+    const dashboardRes = await request(app).get('/api/admin/dashboard');
+    expect(dashboardRes.status).toBe(401);
+
+    const usersRes = await request(app).get('/api/admin/users');
+    expect(usersRes.status).toBe(401);
+  });
+
   it('admin olmayan kullanıcı dashboard/users göremez', async () => {
     const dashboardRes = await request(app)
       .get('/api/admin/dashboard')

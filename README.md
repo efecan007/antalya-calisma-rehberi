@@ -49,9 +49,17 @@ Her modülün `infrastructure/` klasöründe bir `*.controller.js` (HTTP handler
 
 | Katman | Konum | Kapsam | Gereksinim |
 |---|---|---|---|
-| **Unit** (taban, en çok test) | `tests/unit/` | Domain value object'leri (`Rating`), domain servisleri (`RatingAggregator`), use-case'ler sahte in-memory repository'lerle | Yok — her ortamda çalışır |
-| **Integration** (orta) | `tests/integration/` | Prisma repository'lerinin gerçek PostgreSQL'e karşı çalışması, cache helper'ının gerçek Redis'e karşı çalışması | `docker compose up -d db redis` |
-| **E2E** (tepe, en az test) | `tests/e2e/` | Tüm Express uygulamasının `supertest` ile HTTP üzerinden uçtan uca test edilmesi (register→login→me, mekan oluştur→listele→review ekle→ortalama güncellenir→yetkisiz silme reddi) | `docker compose up -d db redis` |
+| **Unit** (taban, en çok test — 95 test) | `tests/unit/` | Domain value object'leri (`Rating`), domain servisleri (`RatingAggregator`), tüm `*.service.js` use-case'leri sahte in-memory repository'lerle, JWT guard'ları (`requireAuth`/`requireAdmin`/`optionalAuth`), `jwt.js` (sign/verify, tampered/expired token reddi), `password.js` (bcrypt hash/compare) | Yok — her ortamda çalışır |
+| **Integration** (orta — 3 test) | `tests/integration/` | Prisma repository'lerinin gerçek PostgreSQL'e karşı çalışması, cache helper'ının gerçek Redis'e karşı çalışması | `docker compose up -d db redis` |
+| **E2E / API endpoint** (tepe, en az test — 33 test) | `tests/e2e/` | Tüm Express uygulamasının `supertest` ile gerçek HTTP istekleriyle uçtan uca test edilmesi | `docker compose up -d db redis` |
+
+E2E dosyaları isim bazında modül sınırlarını takip eder ve aşağıdaki alanları kapsar:
+
+- `auth.e2e.test.js` — **register/login**, yanlış şifre, `/me`, **logout**, token olmadan `/me`+`logout` 401
+- `places.e2e.test.js` — **place create/list/detail** (admin-only create, 403 for non-admin, `GET /:id` detay + 404), PATCH/DELETE yetkilendirmesi, **review create** (`POST /:id/reviews`) + `GET /:id/reviews`
+- `suggestions.e2e.test.js` — öneri gönderme, admin onay/red, **admin authorization** (token'sız 401 + yanlış rol 403)
+- `favorites.e2e.test.js` — **favorite add/remove** + listeleme döngüsü
+- `admin.e2e.test.js` — dashboard/kullanıcı listesi, **admin authorization** (token'sız 401 + yanlış rol 403), kullanıcı silme (kendi hesabını silme koruması dahil)
 
 ```bash
 cd backend

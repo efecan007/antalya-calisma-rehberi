@@ -94,6 +94,11 @@ describe('Suggestions flow (e2e)', () => {
     expect(res.body.some((p) => p.id === placeId)).toBe(false);
   });
 
+  it('token olmadan /admin/suggestions 401 döner', async () => {
+    const res = await request(app).get('/api/admin/suggestions');
+    expect(res.status).toBe(401);
+  });
+
   it('admin olmayan kullanıcı /admin/suggestions göremez, onaylayamaz, reddedemez', async () => {
     const listRes = await request(app)
       .get('/api/admin/suggestions')

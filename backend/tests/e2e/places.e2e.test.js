@@ -81,6 +81,24 @@ describe('Places CRUD (e2e)', () => {
     expect(listRes.body.some((p) => p.id === placeId)).toBe(true);
   });
 
+  it('GET /api/places/:id mekan detayını döner', async () => {
+    const res = await request(app).get(`/api/places/${placeId}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        id: placeId,
+        name: 'E2E Test Kafesi',
+        region: 'MURATPASA',
+        status: 'APPROVED',
+      })
+    );
+  });
+
+  it('var olmayan mekan detayı 404 döner', async () => {
+    const res = await request(app).get('/api/places/999999999');
+    expect(res.status).toBe(404);
+  });
+
   it('admin olmayan kullanıcı mekanı güncelleyemez (403)', async () => {
     const res = await request(app)
       .patch(`/api/places/${placeId}`)
