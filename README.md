@@ -88,6 +88,19 @@ Her mekanın kendi (mekanı ekleyen kişinin girdiği) sabit özellikleri ile ku
 - **Mekan özellikleri** (Place tablosunda saklanır): ad, tür (`HOTEL`/`CAFE`/`LIBRARY`/`COWORKING`), bölge (Lara, Konyaaltı, Kaleiçi, Muratpaşa, Kepez, Döşemealtı, Aksu, Belek), açık adres, lat/lng, fiyat seviyesi, çalışma saatleri, fotoğraf URL'leri (`photoUrls[]`), priz sayısı seviyesi (az/orta/çok), sessizlik seviyesi (düşük/orta/yüksek), çalışma masası uygunluğu, Wi-Fi/klima/toplantı-uygunluğu/uzun-süre-laptop-uygunluğu (evet/hayır).
 - **Review ortalamaları** (`ratings` alanı altında, kullanıcı yorumlarından hesaplanır): internet hızı, priz sayısı puanı, sessizlik puanı, kahve kalitesi, çalışma ortamı, fiyat seviyesi, genel puan.
 
+## Veritabanı Şeması
+
+Prisma modelleri (ve JS/API tarafındaki alan adları) camelCase kalır, ama fiziksel PostgreSQL kolon/tablo adları `@map`/`@@map` ile snake_case'e eşlenir — `\d places`, `\d users` vb. ile doğrulanabilir:
+
+| Tablo | Kolonlar (öne çıkanlar) |
+|---|---|
+| `users` | `id`, `full_name`, `email`, `password_hash`, `role`, `created_at`, `updated_at` |
+| `places` | `id`, `name`, `type`, `district`, `address`, `latitude`, `longitude`, `price_level`, `working_hours`, `description`, `has_wifi`, `has_air_conditioning`, `is_meeting_friendly`, `is_laptop_friendly`, `socket_level`, `quietness_level`, `photo_urls`, `is_desk_friendly`, `status`, `created_at`, `updated_at` |
+| `reviews` | `id`, `user_id`, `place_id`, `rating`, `comment`, `internet_rating`, `quietness_rating`, `coffee_rating`, `socket_rating`, `work_environment`, `price_level`, `created_at` |
+| `favorites` | `id`, `user_id`, `place_id`, `created_at` |
+
+Ortalama internet hızı ve kahve kalitesi bilinçli olarak `places` tablosunda **yok** — bunlar `reviews`'dan hesaplanan ortalamalardır (bkz. yukarıdaki "Mekan Bilgileri"), mekanı ekleyen kişinin girdiği sabit bir değer değildir.
+
 ## Frontend Sayfaları
 
 - `/` — Ana Sayfa: proje tanıtımı ve "Mekanları Keşfet" / "Haritada Gör" yönlendirmeleri.

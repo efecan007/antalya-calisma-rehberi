@@ -45,70 +45,78 @@ enum LevelRating {
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
-  passwordHash String
-  name         String
+  passwordHash String   @map("password_hash")
+  name         String   @map("full_name")
   role         Role     @default(USER)
-  createdAt    DateTime @default(now())
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   places    Place[]
   reviews   Review[]
   favorites Favorite[]
+
+  @@map("users")
 }
 
 model Place {
   id              Int         @id @default(autoincrement())
   name            String
   type            PlaceType
-  region          Region
+  region          Region      @map("district")
   address         String
-  lat             Float
-  lng             Float
+  lat             Float       @map("latitude")
+  lng             Float       @map("longitude")
   description     String?
-  priceLevel      Int         @default(2)
-  photoUrls       String[]    @default([])
-  outletLevel     LevelRating @default(MEDIUM)
-  noiseLevel      LevelRating @default(MEDIUM)
-  deskFriendly    Boolean     @default(true)
-  openingHours    String?
-  hasWifi         Boolean     @default(true)
-  hasAC           Boolean     @default(true)
-  meetingSuitable Boolean     @default(false)
-  laptopFriendly  Boolean     @default(true)
+  priceLevel      Int         @default(2) @map("price_level")
+  photoUrls       String[]    @default([]) @map("photo_urls")
+  outletLevel     LevelRating @default(MEDIUM) @map("socket_level")
+  noiseLevel      LevelRating @default(MEDIUM) @map("quietness_level")
+  deskFriendly    Boolean     @default(true) @map("is_desk_friendly")
+  openingHours    String?     @map("working_hours")
+  hasWifi         Boolean     @default(true) @map("has_wifi")
+  hasAC           Boolean     @default(true) @map("has_air_conditioning")
+  meetingSuitable Boolean     @default(false) @map("is_meeting_friendly")
+  laptopFriendly  Boolean     @default(true) @map("is_laptop_friendly")
   status          PlaceStatus @default(APPROVED)
-  createdById     Int?
+  createdById     Int?        @map("created_by_id")
   createdBy       User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt       DateTime    @default(now())
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
 
   reviews   Review[]
   favorites Favorite[]
+
+  @@map("places")
 }
 
 model Review {
   id               Int      @id @default(autoincrement())
-  placeId          Int
+  placeId          Int      @map("place_id")
   place            Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  userId           Int
+  userId           Int      @map("user_id")
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  internetSpeed    Int
-  outletCount      Int
-  noiseLevel       Int
-  coffeeQuality    Int
-  workEnvironment  Int
-  priceLevel       Int
-  overallRating    Int
+  internetSpeed    Int      @map("internet_rating")
+  outletCount      Int      @map("socket_rating")
+  noiseLevel       Int      @map("quietness_rating")
+  coffeeQuality    Int      @map("coffee_rating")
+  workEnvironment  Int      @map("work_environment")
+  priceLevel       Int      @map("price_level")
+  overallRating    Int      @map("rating")
   comment          String?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime @default(now()) @map("created_at")
 
   @@unique([placeId, userId])
+  @@map("reviews")
 }
 
 model Favorite {
   id        Int      @id @default(autoincrement())
-  userId    Int
+  userId    Int      @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  placeId   Int
+  placeId   Int      @map("place_id")
   place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([userId, placeId])
+  @@map("favorites")
 }
