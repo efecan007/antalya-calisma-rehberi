@@ -1,6 +1,7 @@
 require('dotenv').config();
-const app = require('./app');
+const { createApp } = require('./shared/infrastructure/http/expressApp');
 
+const app = createApp();
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
