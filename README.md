@@ -210,6 +210,40 @@ Bu sistemde **"Her istek doğrulanmadan güvenilir kabul edilmez."** ilkesi uygu
 - Mekan görünürlüğü (`PlacesService.getPlace`) Redis cache'ten dönen sonuç için bile her çağrıda yeniden değerlendirilir — önbellekte `PENDING`/`REJECTED` bir mekan bulunsa dahi, isteği yapanın sahibi veya admin olduğu her seferinde yeniden kontrol edilir; cache hit'i yetki kontrolünü asla atlamaz.
 - Sahiplik/yetki kontrolleri (yorum silme, favori işlemleri) her zaman sunucu tarafında, istemciden gelen `userId` yerine JWT'den çözülen kimliğe göre yapılır — istemcinin "ben buyum" demesi yeterli değildir.
 
+## Git ve Commit Kuralları
+
+Commit mesajları [Conventional Commits](https://www.conventionalcommits.org/) formatındadır ve **scope zorunludur**:
+
+```
+type(scope): message
+```
+
+Kullanılabilecek `type` değerleri (kapalı liste, `commitlint.config.js` tarafından zorlanır): `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `build`, `ci`.
+
+Sık kullanılan `scope` örnekleri: `auth`, `users`, `places`, `reviews`, `favorites`, `suggestions`, `admin`, `database`, `docker`, `frontend`, `backend`, `map`, `cache`, `tests`, `readme`.
+
+Örnekler:
+
+```
+feat(auth): add jwt login and register endpoints
+feat(places): create place listing and filtering api
+feat(map): integrate leaflet map with place markers
+fix(auth): handle invalid jwt token error
+fix(places): correct district filter query
+refactor(database): apply repository pattern to place queries
+test(auth): add unit tests for login service
+docs(readme): add docker setup instructions
+build(docker): add docker compose configuration
+```
+
+Bu kural yalnızca dokümantasyon değildir — repo kökünde `husky` + `commitlint` ile `commit-msg` git hook'u olarak zorlanır. `npm install` (kök dizinde) hook'u kurar; scope'suz veya listede olmayan bir `type` ile yapılan commit'ler reddedilir:
+
+```bash
+npm install        # kökte, bir kez — husky commit-msg hook'unu kurar
+git commit -m "feat(places): add sorting by rating"   # ✅ geçer
+git commit -m "add sorting"                            # ❌ reddedilir (scope yok, type yok)
+```
+
 ## Future Improvements
 
 Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı çünkü tek ekip/öğrenci projesi için yönetilebilirlik, basit deploy ve düşük operasyonel yük daha değerli. Aşağıdaki konular şu an **kapsam dışı** bırakıldı ama mevcut modüler yapı (her modülün kendi domain/application/infrastructure katmanları ve repository port'ları olması) bunlara ileride evrilmeyi kolaylaştırıyor:
