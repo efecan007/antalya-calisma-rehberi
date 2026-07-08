@@ -43,6 +43,16 @@ Her modülün `infrastructure/` klasöründe bir `*.controller.js` (HTTP handler
 - **Modüller arası bağımlılık**: bazı endpoint'ler birden fazla modülün sorumluluğunu birleştirir (ör. `POST /api/places/:id/reviews` places altında yaşar ama reviews modülünün controller'ını kullanır; `GET /api/places/pending` ve `/:id/approve|reject` suggestions modülünden `places.routes.js`'e mount edilir; `GET /api/reviews` admin modülünden `reviews.routes.js`'e mount edilir). Bu, dış API sözleşmesini (URL yapısını) değiştirmeden modülleri ayırmayı sağlar.
 - **Redis cache** (`modules/cache/`): `GET /api/places` ve `GET /api/places/:id` sonuçları cache-aside deseniyle 60 saniye cache'lenir; bir mekan/yorum oluşturulduğunda, güncellendiğinde veya silindiğinde ilgili cache anahtarları invalide edilir. Redis'e erişilemezse sistem cache'siz (doğrudan DB'den) çalışmaya devam eder — cache bir "nice-to-have"dir, kritik yol değildir.
 
+### Neden Microservices Seçilmedi?
+
+Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı, ayrı servislere bölünmedi. Gerekçeler:
+
+- **Takım/ölçek büyüklüğü**: Tek geliştirici/küçük ekip senaryosunda microservices'in getirdiği koordinasyon yükü (her serviste ayrı deploy pipeline, ayrı repo/versiyon yönetimi, servisler arası kontrat testleri) fayda sağlamadan önce maliyet olarak başlar.
+- **Operasyonel karmaşıklık**: Bu projede tek bir Postgres + tek bir Redis + tek bir Node process yeterliyken, microservices her modül için ayrı veritabanı, service discovery, dağıtık izleme (distributed tracing) ve network güvenliği gerektirirdi — trafik/veri hacmi bunu haklı çıkaracak boyutta değil.
+- **Dağıtık sistem karmaşıklığı erken gelmiyor**: Modüller arası çağrılar şu an aynı process içinde senkron fonksiyon çağrısı (ör. `suggestions.service.js`'in `places.service.js`'i doğrudan çağırması); bunlar ağ üzerinden HTTP/RPC çağrısı olsaydı, kısmi hata (partial failure), retry/timeout, dağıtık transaction gibi problemler baştan çözülmesi gereken karmaşıklık ekleyecekti.
+- **Erken optimizasyon riski**: Modül sınırları (auth/users/places/reviews/favorites/suggestions/admin/cache) net olduğu için "gerektiğinde ayrıştırma" mümkün, ama bunu bugünden yapmak, henüz var olmayan bir ölçek problemi için karmaşıklık satın almak anlamına gelirdi.
+- **Geriye dönüş kapısı açık**: Her modülün kendi `domain`/`application`/`infrastructure` katmanları ve repository *port*'ları olduğu için, ileride gerçek bir ölçek ihtiyacı doğduğunda (bkz. `Future Improvements` → API Gateway ile microservices mimarisine geçiş) bu modüller *infrastructure* katmanı değiştirilerek ayrı servislere çıkarılabilir — mimari bunu bugünden imkansız kılmıyor, sadece bugün gerekli görmüyor.
+
 ## Testler (Test Pyramid)
 
 `backend/tests/` üç katmana ayrılmıştır:
@@ -82,6 +92,36 @@ docker compose up --build
 - Redis: localhost:6379
 
 İlk açılışta backend, `prisma db push` ile şemayı oluşturur ve örnek Antalya mekanlarıyla (`prisma/seed.js`) veritabanını doldurur. Demo kullanıcı: `demo@workfromhotel.com` / `Password123!`. Demo admin: `admin@workfromhotel.com` / `Password123!`.
+
+## Environment Variables
+
+Üç ayrı `.env.example` şablonu vardır — kök dizin (Docker Compose için), `backend/`, `frontend/`. Gerçek `.env` dosyaları asla commit edilmez (`.gitignore`'da).
+
+**Kök `.env.example`** (Docker Compose değişken enjeksiyonu için):
+
+| Değişken | Açıklama |
+|---|---|
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Postgres container'ının kullanıcı/şifre/veritabanı adı; backend'in `DATABASE_URL`'i bunlardan derlenir |
+| `JWT_SECRET` | JWT imzalama anahtarı — production'da mutlaka uzun, rastgele bir değerle değiştirilmeli |
+| `JWT_EXPIRES_IN` | Access token'ın geçerlilik süresi (ör. `7d`) |
+| `CORS_ORIGIN` | Backend'in kabul ettiği frontend origin'i |
+| `REDIS_URL` | Backend'in bağlanacağı Redis adresi (Compose içinde `redis://redis:6379`) |
+
+**`backend/.env.example`** (Docker olmadan lokal geliştirme için):
+
+| Değişken | Açıklama |
+|---|---|
+| `DATABASE_URL` | Prisma'nın kullandığı Postgres bağlantı string'i |
+| `REDIS_URL` | Redis bağlantı adresi |
+| `JWT_SECRET`, `JWT_EXPIRES_IN` | Yukarıdakiyle aynı |
+| `PORT` | Backend'in dinleyeceği port (varsayılan `4000`) |
+| `CORS_ORIGIN` | İzin verilen frontend origin'i (lokalde `http://localhost:5173`) |
+
+**`frontend/.env.example`**:
+
+| Değişken | Açıklama |
+|---|---|
+| `VITE_API_URL` | Frontend'in API isteklerini yönlendirdiği taban URL (`/api`, Vite dev proxy veya nginx tarafından backend'e yönlendirilir) |
 
 ## Kullanıcı Rolleri
 
@@ -246,12 +286,16 @@ git commit -m "add sorting"                            # ❌ reddedilir (scope y
 
 ## Future Improvements
 
-Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı çünkü tek ekip/öğrenci projesi için yönetilebilirlik, basit deploy ve düşük operasyonel yük daha değerli. Aşağıdaki konular şu an **kapsam dışı** bırakıldı ama mevcut modüler yapı (her modülün kendi domain/application/infrastructure katmanları ve repository port'ları olması) bunlara ileride evrilmeyi kolaylaştırıyor:
+Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı çünkü tek ekip/öğrenci projesi için yönetilebilirlik, basit deploy ve düşük operasyonel yük daha değerli (bkz. yukarıdaki "Neden Microservices Seçilmedi?"). Aşağıdaki konular şu an **kapsam dışı** bırakıldı ama mevcut modüler yapı (her modülün kendi domain/application/infrastructure katmanları ve repository port'ları olması) bunlara ileride evrilmeyi kolaylaştırıyor:
 
-- **Microservices**: `users`, `places`, `reviews` modülleri zaten net sınırlarla ayrıldığı için, trafik/ölçek gerektiğinde her biri kendi veritabanı ve deploy birimiyle ayrı bir servise çıkarılabilir. Modüller arası tek bağımlılık noktası (ör. reviews'in places'e bağımlılığı) bir HTTP/RPC çağrısına dönüştürülebilir.
-- **Kafka / Event-Driven Architecture**: Şu an cache invalidation ve modüller arası iletişim doğrudan fonksiyon çağrısıyla senkron yapılıyor (ör. review oluşturulunca place cache'i doğrudan invalide ediliyor). İleride bu, `ReviewCreated`, `PlaceUpdated` gibi domain event'lerinin bir mesaj kuyruğuna (Kafka/RabbitMQ) yayınlanıp ilgili modüllerin bunlara asenkron abone olmasıyla değiştirilebilir.
-- **gRPC**: Modüller ayrı servislere bölündüğünde, aralarındaki iletişim için REST yerine daha düşük gecikmeli/tip-güvenli gRPC kullanılabilir.
-- **Event Sourcing**: Review/Place geçmişinin (kim ne zaman ne değiştirdi) tam denetim izi gerektiği bir senaryoda, mevcut CRUD tabanlı Prisma modelleri yerine event-sourced bir yazma modeline geçilebilir.
-- **CQRS**: Okuma (mekan listeleme/filtreleme, ki zaten Redis ile cache'leniyor) ve yazma (review/place oluşturma) yükleri birbirinden çok farklılaştığında, okuma tarafı için ayrı, denormalize edilmiş bir modele (ör. Elasticsearch) geçilip komut/sorgu sorumlulukları ayrılabilir.
+- **Elasticsearch ile gelişmiş arama**: Şu an `GET /api/places?search=` Postgres `ILIKE` ile ad/adres üzerinde basit bir metin araması yapıyor. Elasticsearch'e geçilerek yazım hatalarına dayanıklı (fuzzy) arama, alan bazlı ağırlıklandırma (ör. mekan adı > açıklama) ve facet'li filtreleme (bölge/tür/özellik sayımlarıyla birlikte) eklenebilir.
+- **Kafka ile event-driven bildirim sistemi**: Şu an modüller arası iletişim ve cache invalidation doğrudan senkron fonksiyon çağrısıyla yapılıyor (ör. review oluşturulunca `invalidatePlaceListCaches` doğrudan çağrılıyor). İleride `ReviewCreated`, `PlaceApproved`, `PlaceRejected` gibi domain event'leri Kafka'ya yayınlanıp; bir öneri onaylandığında/reddedildiğinde öneriyi gönderen kullanıcıya, bir mekana yorum geldiğinde mekanı favorileyen kullanıcılara bildirim gönderen ayrı bir bildirim servisi bu event'lere asenkron abone olabilir.
+- **CQRS yapısına geçiş**: Okuma (mekan listeleme/filtreleme/sıralama — zaten Redis ile cache'leniyor) ve yazma (review/place oluşturma) yükleri birbirinden çok farklılaştığında, okuma tarafı için ayrı, denormalize edilmiş bir modele geçilip komut/sorgu sorumlulukları ayrılabilir.
+- **Mobil uygulama**: Backend zaten JWT tabanlı stateless bir REST API olduğu için (frontend'e özel hiçbir oturum durumu sunucuda tutulmuyor), React Native/Flutter ile bir mobil istemci aynı `/api` sözleşmesini doğrudan tüketebilir; ek olarak bkz. aşağıdaki BFF maddesi.
+- **Prometheus ile monitoring**: Şu an gözlemlenebilirlik yalnızca `console.log`/`console.warn` (ör. Redis bağlantı hataları) ile sınırlı. Prometheus ile istek sayısı/gecikme/hata oranı (ör. `/api/places` p95 latency), cache hit/miss oranı ve rate-limit tetiklenme sayısı gibi metrikler `/metrics` endpoint'inden export edilip Grafana ile görselleştirilebilir.
+- **RAG sistemi ile "bana sessiz ve hızlı internetli yer öner" yapay zeka asistanı**: Mekanların zaten yapılandırılmış özellikleri (`noiseLevel`, `outletLevel`, review ortalamaları, açıklama metni) bir LLM'e retrieval-augmented generation ile beslenerek doğal dilde mekan önerisi yapan bir asistan uç noktası (`POST /api/assistant/recommend`) eklenebilir — kullanıcı "sessiz ve hızlı internetli bir yer" dediğinde, ilgili filtreler + review yorumları context olarak LLM'e verilip gerekçeli bir öneri üretilir.
+- **ChromaDB veya Pinecone ile vektör arama**: Yukarıdaki RAG asistanının temel bileşeni — mekan açıklamaları ve yorum metinleri embedding'e çevrilip bir vektör veritabanında saklanarak, anlam bazlı ("çalışmak için sakin bir kafe" gibi) benzerlik araması yapılabilir; bu, Elasticsearch'ün anahtar kelime aramasını semantik aramayla tamamlar.
+- **API Gateway ile microservices mimarisine geçiş**: Modüller (`users`, `places`, `reviews`, ...) net sınırlarla ayrıldığı için, trafik/ölçek gerektiğinde her biri kendi veritabanı ve deploy birimiyle ayrı bir servise çıkarılabilir; bir API Gateway (ör. Kong, veya Express tabanlı basit bir gateway) tek giriş noktası olarak auth/rate-limiting/routing'i merkezi yönetir, modüller arası senkron çağrılar (ör. suggestions'ın places'i çağırması) HTTP/gRPC'ye dönüşür.
+- **BFF (Backend-for-Frontend) yapısı**: Mobil uygulama eklendiğinde, web ve mobil istemcilerin ihtiyaçları (ör. mobilde daha küçük payload, farklı sayfalama) ayrışabilir; her istemci için mevcut modüler backend'in üzerine ince bir BFF katmanı (ör. `bff-web`, `bff-mobile`) eklenerek, çekirdek modüller değişmeden istemciye özel response şekillendirmesi yapılabilir.
 
 Mevcut Repository Pattern ve use-case katmanı, bu değişikliklerin *application* katmanını neredeyse hiç etkilemeden yalnızca *infrastructure* katmanında yapılabilmesini sağlıyor.
