@@ -93,6 +93,8 @@ docker compose up --build
 
 İlk açılışta backend, `prisma db push` ile şemayı oluşturur ve örnek Antalya mekanlarıyla (`prisma/seed.js`) veritabanını doldurur. Demo kullanıcı: `demo@workfromhotel.com` / `Password123!`. Demo admin: `admin@workfromhotel.com` / `Password123!`.
 
+> **Not:** `prisma/seed.js`'teki mekanlar (Lara, Konyaaltı, Kaleiçi, Muratpaşa, Kepez, Belek bölgelerinde; cafe/otel lobisi/kütüphane/coworking türlerinde) gerçekçi konumlara yerleştirilmiş **demo/örnek veridir** — isimler, açıklamalar ve puanlar kurgusaldır, doğrulanmış gerçek işletme verisi değildir.
+
 ## Environment Variables
 
 Üç ayrı `.env.example` şablonu vardır — kök dizin (Docker Compose için), `backend/`, `frontend/`. Gerçek `.env` dosyaları asla commit edilmez (`.gitignore`'da).

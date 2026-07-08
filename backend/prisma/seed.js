@@ -1,3 +1,11 @@
+/**
+ * DEMO VERİ UYARISI: Buradaki mekanlar Antalya'nın gerçek bölgelerine (Lara,
+ * Konyaaltı, Kaleiçi, Muratpaşa, Kepez, Belek, ...) yerleştirilmiş, gerçekçi
+ * koordinatlara sahip ÖRNEK/DEMO kayıtlardır. İsimler, açıklamalar, review
+ * puanları ve fiyat seviyeleri kurgusaldır; belirli bir gerçek işletmeyi
+ * (ör. bir otel zincirini) temsil etmez ve doğrulanmış gerçek veri değildir.
+ * Üretim ortamında gerçek mekan verisiyle değiştirilmelidir.
+ */
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -65,7 +73,7 @@ const PLACES = [
     priceLevel: 3,
   },
   {
-    name: 'Rixos Lara Çalışma Lobisi',
+    name: 'Lara Sahil Resort Lobisi',
     type: 'HOTEL',
     region: 'LARA',
     address: 'Lara Turizm Merkezi',
@@ -102,6 +110,46 @@ const PLACES = [
     lat: 36.9036,
     lng: 30.8006,
     description: 'Uçuş öncesi/sonrası çalışmak için pratik, sınırlı priz sayısı.',
+    priceLevel: 3,
+  },
+  {
+    name: 'Belek Golf Resort Lobisi',
+    type: 'HOTEL',
+    region: 'BELEK',
+    address: 'Belek Turizm Merkezi, Serik',
+    lat: 36.8625,
+    lng: 31.0556,
+    description: 'Golf sahasına bakan sakin lobi, iş toplantıları için ayrılmış köşeler.',
+    priceLevel: 4,
+  },
+  {
+    name: 'Belek Merkez Kütüphanesi',
+    type: 'LIBRARY',
+    region: 'BELEK',
+    address: 'Kadriye Mahallesi, Belek',
+    lat: 36.8558,
+    lng: 31.0503,
+    description: 'Sezon dışında sakin, klimalı okuma salonlarına sahip küçük bir kütüphane.',
+    priceLevel: 1,
+  },
+  {
+    name: 'Konyaaltı Ortak Çalışma Alanı',
+    type: 'COWORKING',
+    region: 'KONYAALTI',
+    address: 'Akdeniz Mahallesi, Konyaaltı',
+    lat: 36.8672,
+    lng: 30.6716,
+    description: 'Günlük/aylık masa kiralama, sabit fiber internet ve toplantı odaları olan coworking alanı.',
+    priceLevel: 3,
+  },
+  {
+    name: 'Muratpaşa Coworking Hub',
+    type: 'COWORKING',
+    region: 'MURATPASA',
+    address: 'Fener Mahallesi, Muratpaşa',
+    lat: 36.8802,
+    lng: 30.7339,
+    description: 'Açık ofis masaları, telefon kabinleri ve sınırsız kahve sunan şehir merkezi coworking alanı.',
     priceLevel: 3,
   },
 ];
