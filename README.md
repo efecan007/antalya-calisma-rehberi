@@ -72,6 +72,13 @@ docker compose up --build
 - **Kayıtlı kullanıcı**: JWT ile giriş yapar, mekanlara yorum + puan bırakır, mekanları favorilerine ekler (`/favorilerim`), yeni mekan **önerisi** gönderir (admin onayına kadar `PENDING` durumda, herkese açık listede görünmez).
 - **Admin**: `/admin` panelinden bekleyen mekan önerilerini onaylar/reddeder, doğrudan mekan ekler/düzenler/siler, tüm kullanıcıların yorumlarını moderasyon amacıyla silebilir.
 
+## Mekan Bilgileri
+
+Her mekanın kendi (mekanı ekleyen kişinin girdiği) sabit özellikleri ile kullanıcı review'larından **hesaplanan ortalamalar** ayrı tutulur:
+
+- **Mekan özellikleri** (Place tablosunda saklanır): ad, tür (`HOTEL`/`CAFE`/`LIBRARY`/`COWORKING`), bölge (Lara, Konyaaltı, Kaleiçi, Muratpaşa, Kepez, Döşemealtı, Aksu, Belek), açık adres, lat/lng, fiyat seviyesi, çalışma saatleri, fotoğraf URL'leri (`photoUrls[]`), priz sayısı seviyesi (az/orta/çok), sessizlik seviyesi (düşük/orta/yüksek), çalışma masası uygunluğu, Wi-Fi/klima/toplantı-uygunluğu/uzun-süre-laptop-uygunluğu (evet/hayır).
+- **Review ortalamaları** (`ratings` alanı altında, kullanıcı yorumlarından hesaplanır): internet hızı, priz sayısı puanı, sessizlik puanı, kahve kalitesi, çalışma ortamı, fiyat seviyesi, genel puan.
+
 ## Yerel Geliştirme (Docker olmadan)
 
 ### Backend

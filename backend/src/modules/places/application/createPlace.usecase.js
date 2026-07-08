@@ -1,6 +1,12 @@
 const { ValidationError } = require('../../../shared/domain/errors');
 const PlaceType = require('../domain/PlaceType');
 const Region = require('../domain/Region');
+const LevelRating = require('../domain/LevelRating');
+
+function normalizePhotoUrls(photoUrls) {
+  if (!Array.isArray(photoUrls)) return [];
+  return photoUrls.map((url) => String(url).trim()).filter(Boolean);
+}
 
 class CreatePlaceUseCase {
   constructor({ placeRepository, cache }) {
@@ -19,13 +25,23 @@ class CreatePlaceUseCase {
     lng,
     description,
     priceLevel,
-    imageUrl,
+    photoUrls,
+    outletLevel,
+    noiseLevel,
+    deskFriendly,
+    openingHours,
+    hasWifi,
+    hasAC,
+    meetingSuitable,
+    laptopFriendly,
   }) {
     if (!name || !type || !region || !address || lat === undefined || lng === undefined) {
       throw new ValidationError('name, type, region, address, lat, lng zorunludur');
     }
     PlaceType.assertValid(type);
     Region.assertValid(region);
+    if (outletLevel !== undefined) LevelRating.assertValid(outletLevel, 'outletLevel');
+    if (noiseLevel !== undefined) LevelRating.assertValid(noiseLevel, 'noiseLevel');
 
     const place = await this.placeRepository.create({
       name,
@@ -36,7 +52,15 @@ class CreatePlaceUseCase {
       lng: Number(lng),
       description,
       priceLevel: priceLevel ? Number(priceLevel) : 2,
-      imageUrl,
+      photoUrls: normalizePhotoUrls(photoUrls),
+      outletLevel: outletLevel ?? 'MEDIUM',
+      noiseLevel: noiseLevel ?? 'MEDIUM',
+      deskFriendly: deskFriendly ?? true,
+      openingHours: openingHours || null,
+      hasWifi: hasWifi ?? true,
+      hasAC: hasAC ?? true,
+      meetingSuitable: meetingSuitable ?? false,
+      laptopFriendly: laptopFriendly ?? true,
       status: requesterRole === 'ADMIN' ? 'APPROVED' : 'PENDING',
       createdById,
     });

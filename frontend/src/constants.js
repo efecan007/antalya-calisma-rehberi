@@ -6,12 +6,26 @@ export const REGIONS = [
   { value: 'KALEICI', label: 'Kaleiçi' },
   { value: 'DOSEMEALTI', label: 'Döşemealtı' },
   { value: 'AKSU', label: 'Aksu' },
+  { value: 'BELEK', label: 'Belek' },
 ];
 
 export const PLACE_TYPES = [
-  { value: 'HOTEL', label: 'Otel' },
+  { value: 'HOTEL', label: 'Otel Lobisi' },
   { value: 'CAFE', label: 'Kafe' },
   { value: 'LIBRARY', label: 'Kütüphane' },
+  { value: 'COWORKING', label: 'Coworking Alanı' },
+];
+
+export const LEVEL_OPTIONS = [
+  { value: 'LOW', label: 'Az' },
+  { value: 'MEDIUM', label: 'Orta' },
+  { value: 'HIGH', label: 'Çok' },
+];
+
+export const NOISE_LEVEL_OPTIONS = [
+  { value: 'LOW', label: 'Düşük' },
+  { value: 'MEDIUM', label: 'Orta' },
+  { value: 'HIGH', label: 'Yüksek' },
 ];
 
 export const RATING_CRITERIA = [
@@ -40,4 +54,12 @@ export function regionLabel(value) {
 
 export function typeLabel(value) {
   return PLACE_TYPES.find((t) => t.value === value)?.label || value;
+}
+
+export function levelLabel(value) {
+  return LEVEL_OPTIONS.find((l) => l.value === value)?.label || value;
+}
+
+export function noiseLevelLabel(value) {
+  return NOISE_LEVEL_OPTIONS.find((l) => l.value === value)?.label || value;
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { REGIONS, PLACE_TYPES } from '../constants';
+import { REGIONS, PLACE_TYPES, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
 
 const initialState = {
   name: '',
@@ -13,6 +13,15 @@ const initialState = {
   lng: '',
   description: '',
   priceLevel: 2,
+  photoUrlsText: '',
+  outletLevel: 'MEDIUM',
+  noiseLevel: 'MEDIUM',
+  deskFriendly: true,
+  openingHours: '',
+  hasWifi: true,
+  hasAC: true,
+  meetingSuitable: false,
+  laptopFriendly: true,
 };
 
 export default function AddPlacePage() {
@@ -33,7 +42,12 @@ export default function AddPlacePage() {
     setSubmitting(true);
     setError('');
     try {
-      const { data } = await apiClient.post('/places', form);
+      const { photoUrlsText, ...rest } = form;
+      const photoUrls = photoUrlsText
+        .split('\n')
+        .map((url) => url.trim())
+        .filter(Boolean);
+      const { data } = await apiClient.post('/places', { ...rest, photoUrls });
       if (isAdmin) {
         navigate(`/mekan/${data.id}`);
       } else {
@@ -150,6 +164,97 @@ export default function AddPlacePage() {
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           rows={3}
         />
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm text-gray-700">
+            Priz Sayısı Seviyesi
+            <select
+              value={form.outletLevel}
+              onChange={(e) => update('outletLevel', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mt-1"
+            >
+              {LEVEL_OPTIONS.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm text-gray-700">
+            Sessizlik Seviyesi
+            <select
+              value={form.noiseLevel}
+              onChange={(e) => update('noiseLevel', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mt-1"
+            >
+              {NOISE_LEVEL_OPTIONS.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <input
+          type="text"
+          placeholder="Çalışma saatleri (ör. 08:00 - 22:00)"
+          value={form.openingHours}
+          onChange={(e) => update('openingHours', e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+
+        <textarea
+          placeholder="Fotoğraf URL'leri (her satıra bir tane)"
+          value={form.photoUrlsText}
+          onChange={(e) => update('photoUrlsText', e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          rows={2}
+        />
+
+        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.hasWifi}
+              onChange={(e) => update('hasWifi', e.target.checked)}
+            />
+            Wi-Fi var
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.hasAC}
+              onChange={(e) => update('hasAC', e.target.checked)}
+            />
+            Klima var
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.meetingSuitable}
+              onChange={(e) => update('meetingSuitable', e.target.checked)}
+            />
+            Toplantı için uygun
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.laptopFriendly}
+              onChange={(e) => update('laptopFriendly', e.target.checked)}
+            />
+            Laptop ile uzun oturmaya uygun
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.deskFriendly}
+              onChange={(e) => update('deskFriendly', e.target.checked)}
+            />
+            Çalışma masası uygun
+          </label>
+        </div>
+
         <button
           type="submit"
           disabled={submitting}

@@ -16,6 +16,7 @@ enum PlaceType {
   HOTEL
   CAFE
   LIBRARY
+  COWORKING
 }
 
 enum Region {
@@ -26,12 +27,19 @@ enum Region {
   KALEICI
   DOSEMEALTI
   AKSU
+  BELEK
 }
 
 enum PlaceStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum LevelRating {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 model User {
@@ -48,20 +56,28 @@ model User {
 }
 
 model Place {
-  id          Int         @id @default(autoincrement())
-  name        String
-  type        PlaceType
-  region      Region
-  address     String
-  lat         Float
-  lng         Float
-  description String?
-  priceLevel  Int         @default(2)
-  imageUrl    String?
-  status      PlaceStatus @default(APPROVED)
-  createdById Int?
-  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt   DateTime    @default(now())
+  id              Int         @id @default(autoincrement())
+  name            String
+  type            PlaceType
+  region          Region
+  address         String
+  lat             Float
+  lng             Float
+  description     String?
+  priceLevel      Int         @default(2)
+  photoUrls       String[]    @default([])
+  outletLevel     LevelRating @default(MEDIUM)
+  noiseLevel      LevelRating @default(MEDIUM)
+  deskFriendly    Boolean     @default(true)
+  openingHours    String?
+  hasWifi         Boolean     @default(true)
+  hasAC           Boolean     @default(true)
+  meetingSuitable Boolean     @default(false)
+  laptopFriendly  Boolean     @default(true)
+  status          PlaceStatus @default(APPROVED)
+  createdById     Int?
+  createdBy       User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now())
 
   reviews   Review[]
   favorites Favorite[]

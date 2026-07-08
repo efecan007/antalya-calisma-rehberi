@@ -1,6 +1,6 @@
 const { ValidationError } = require('../../../shared/domain/errors');
 
-const VALUES = ['HOTEL', 'CAFE', 'LIBRARY'];
+const VALUES = ['HOTEL', 'CAFE', 'LIBRARY', 'COWORKING'];
 
 class PlaceType {
   static isValid(value) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { regionLabel, typeLabel, RATING_CRITERIA } from '../constants';
+import { regionLabel, typeLabel, levelLabel, noiseLevelLabel, RATING_CRITERIA } from '../constants';
 import RatingStars from '../components/RatingStars';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
@@ -59,7 +59,41 @@ export default function PlaceDetailPage() {
         <span className="text-xs text-gray-400 ml-2">{place.ratings.reviewCount} değerlendirme</span>
       </div>
 
+      {place.photoUrls?.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto mt-4">
+          {place.photoUrls.map((url) => (
+            <img key={url} src={url} alt={place.name} className="h-32 w-48 object-cover rounded-lg flex-shrink-0" />
+          ))}
+        </div>
+      )}
+
       {place.description && <p className="mt-4 text-gray-700">{place.description}</p>}
+
+      {place.openingHours && (
+        <p className="mt-2 text-sm text-gray-600">
+          <span className="text-gray-500">Çalışma Saatleri:</span> {place.openingHours}
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2 mt-3">
+        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+          Priz: {levelLabel(place.outletLevel)}
+        </span>
+        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+          Sessizlik: {noiseLevelLabel(place.noiseLevel)}
+        </span>
+        {place.hasWifi && <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Wi-Fi</span>}
+        {place.hasAC && <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Klima</span>}
+        {place.meetingSuitable && (
+          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Toplantıya Uygun</span>
+        )}
+        {place.laptopFriendly && (
+          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Uzun Süre Laptop</span>
+        )}
+        {place.deskFriendly && (
+          <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Çalışma Masası Uygun</span>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-6">
         {RATING_CRITERIA.filter((c) => c.field !== 'overallRating').map((c) => (

@@ -1,6 +1,6 @@
 const { ValidationError } = require('../../../shared/domain/errors');
 
-const VALUES = ['MURATPASA', 'KONYAALTI', 'KEPEZ', 'LARA', 'KALEICI', 'DOSEMEALTI', 'AKSU'];
+const VALUES = ['MURATPASA', 'KONYAALTI', 'KEPEZ', 'LARA', 'KALEICI', 'DOSEMEALTI', 'AKSU', 'BELEK'];
 
 class Region {
   static isValid(value) {
