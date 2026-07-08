@@ -79,6 +79,17 @@ Her mekanın kendi (mekanı ekleyen kişinin girdiği) sabit özellikleri ile ku
 - **Mekan özellikleri** (Place tablosunda saklanır): ad, tür (`HOTEL`/`CAFE`/`LIBRARY`/`COWORKING`), bölge (Lara, Konyaaltı, Kaleiçi, Muratpaşa, Kepez, Döşemealtı, Aksu, Belek), açık adres, lat/lng, fiyat seviyesi, çalışma saatleri, fotoğraf URL'leri (`photoUrls[]`), priz sayısı seviyesi (az/orta/çok), sessizlik seviyesi (düşük/orta/yüksek), çalışma masası uygunluğu, Wi-Fi/klima/toplantı-uygunluğu/uzun-süre-laptop-uygunluğu (evet/hayır).
 - **Review ortalamaları** (`ratings` alanı altında, kullanıcı yorumlarından hesaplanır): internet hızı, priz sayısı puanı, sessizlik puanı, kahve kalitesi, çalışma ortamı, fiyat seviyesi, genel puan.
 
+## Frontend Sayfaları
+
+- `/` — Ana Sayfa: proje tanıtımı ve "Mekanları Keşfet" / "Haritada Gör" yönlendirmeleri.
+- `/mekanlar` — Mekan Listesi: kart görünümü + bölge/tür/fiyat/puan/internet hızı/sessizlik/priz filtreleri, sıralama, yan tarafta senkronize küçük harita.
+- `/harita` — Harita Sayfası: tüm onaylı mekanlar pin olarak, pine tıklayınca kısa bilgi + detay linki içeren popup.
+- `/mekan/:id` — Mekan Detay: tüm mekan bilgileri, fotoğraf galerisi, özellik rozetleri, yorumlar ve puanlar.
+- `/giris`, `/kayit` — JWT tabanlı giriş/kayıt (çıkış Navbar'dan).
+- `/favorilerim` — Kayıtlı kullanıcının favori mekanları.
+- `/mekan-ekle` — Kayıtlı kullanıcı için mekan önerisi, admin için doğrudan mekan ekleme.
+- `/admin`, `/admin/mekanlar/:id/duzenle` — Admin paneli: bekleyen önerileri onaylar/reddeder, tüm mekanları düzenler/siler, yorumları moderasyon amacıyla siler.
+
 ## Yerel Geliştirme (Docker olmadan)
 
 ### Backend
@@ -104,7 +115,7 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 ## API Uç Noktaları
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
 - `GET /api/regions`
-- `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
+- `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `minInternetSpeed`, `outletLevel`, `noiseLevel`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
 - `GET /api/places/:id` — onaylı mekan herkese açık; `PENDING`/`REJECTED` mekan yalnızca sahibi veya admin tarafından görülebilir
 - `POST /api/places` (JWT gerekli) — admin doğrudan yayınlar (`APPROVED`), normal kullanıcı öneri gönderir (`PENDING`)
 - `PUT /api/places/:id`, `DELETE /api/places/:id` (yalnızca admin)

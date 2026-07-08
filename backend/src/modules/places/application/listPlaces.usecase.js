@@ -31,6 +31,13 @@ class ListPlacesUseCase {
         );
       }
 
+      if (filters.minInternetSpeed) {
+        const min = Number(filters.minInternetSpeed);
+        serialized = serialized.filter(
+          (p) => p.ratings.internetSpeed !== null && p.ratings.internetSpeed >= min
+        );
+      }
+
       if (filters.sortBy && SORTABLE_FIELDS.has(filters.sortBy)) {
         const direction = filters.sortOrder === 'asc' ? 1 : -1;
         const field = filters.sortBy;

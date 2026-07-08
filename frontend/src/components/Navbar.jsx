@@ -17,8 +17,11 @@ export default function Navbar() {
         <span className="ml-2 text-brand-100 text-sm font-normal">Antalya</span>
       </Link>
       <div className="flex items-center gap-4 text-sm">
-        <Link to="/" className="hover:text-brand-100">
-          Keşfet
+        <Link to="/mekanlar" className="hover:text-brand-100">
+          Mekanlar
+        </Link>
+        <Link to="/harita" className="hover:text-brand-100">
+          Harita
         </Link>
         {user ? (
           <>

@@ -39,7 +39,7 @@ export default function PlaceDetailPage() {
 
   return (
     <div className="h-full overflow-y-auto p-6 max-w-3xl mx-auto">
-      <Link to="/" className="text-sm text-brand-600 hover:underline">
+      <Link to="/mekanlar" className="text-sm text-brand-600 hover:underline">
         ← Keşfete dön
       </Link>
       <div className="flex items-center gap-2 mt-2">

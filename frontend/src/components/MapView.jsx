@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { regionLabel, typeLabel } from '../constants';
 
 const markerIcon = L.icon({
@@ -16,8 +16,6 @@ const markerIcon = L.icon({
 const ANTALYA_CENTER = [36.8969, 30.7133];
 
 export default function MapView({ places, activeId, onMarkerHover }) {
-  const navigate = useNavigate();
-
   return (
     <MapContainer center={ANTALYA_CENTER} zoom={12} className="w-full h-full">
       <TileLayer
@@ -31,7 +29,6 @@ export default function MapView({ places, activeId, onMarkerHover }) {
           icon={markerIcon}
           eventHandlers={{
             mouseover: () => onMarkerHover?.(place.id),
-            click: () => navigate(`/mekan/${place.id}`),
           }}
         >
           <Popup>
@@ -40,6 +37,12 @@ export default function MapView({ places, activeId, onMarkerHover }) {
               <p className="text-xs text-gray-500">
                 {typeLabel(place.type)} · {regionLabel(place.region)}
               </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {place.ratings?.overallRating ?? '-'} / 5 · {place.ratings?.reviewCount || 0} değerlendirme
+              </p>
+              <Link to={`/mekan/${place.id}`} className="text-xs text-brand-600 hover:underline mt-1 inline-block">
+                Detayları Gör →
+              </Link>
             </div>
           </Popup>
         </Marker>

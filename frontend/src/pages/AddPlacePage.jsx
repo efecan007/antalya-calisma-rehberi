@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { REGIONS, PLACE_TYPES, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
@@ -26,12 +26,41 @@ const initialState = {
 
 export default function AddPlacePage() {
   const { user } = useAuth();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [suggested, setSuggested] = useState(false);
+  const [loading, setLoading] = useState(isEdit);
   const navigate = useNavigate();
   const isAdmin = user?.role === 'ADMIN';
+
+  useEffect(() => {
+    if (!isEdit) return;
+    apiClient.get(`/places/${id}`).then(({ data }) => {
+      setForm({
+        name: data.name,
+        type: data.type,
+        region: data.region,
+        address: data.address,
+        lat: data.lat,
+        lng: data.lng,
+        description: data.description || '',
+        priceLevel: data.priceLevel,
+        photoUrlsText: (data.photoUrls || []).join('\n'),
+        outletLevel: data.outletLevel,
+        noiseLevel: data.noiseLevel,
+        deskFriendly: data.deskFriendly,
+        openingHours: data.openingHours || '',
+        hasWifi: data.hasWifi,
+        hasAC: data.hasAC,
+        meetingSuitable: data.meetingSuitable,
+        laptopFriendly: data.laptopFriendly,
+      });
+      setLoading(false);
+    });
+  }, [id, isEdit]);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -47,6 +76,11 @@ export default function AddPlacePage() {
         .split('\n')
         .map((url) => url.trim())
         .filter(Boolean);
+      if (isEdit) {
+        await apiClient.put(`/places/${id}`, { ...rest, photoUrls });
+        navigate(`/mekan/${id}`);
+        return;
+      }
       const { data } = await apiClient.post('/places', { ...rest, photoUrls });
       if (isAdmin) {
         navigate(`/mekan/${data.id}`);
@@ -54,10 +88,14 @@ export default function AddPlacePage() {
         setSuggested(true);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Mekan eklenemedi');
+      setError(err.response?.data?.message || 'Mekan kaydedilemedi');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (loading) {
+    return <p className="p-6 text-sm text-gray-500">Yükleniyor...</p>;
   }
 
   if (suggested) {
@@ -74,9 +112,9 @@ export default function AddPlacePage() {
   return (
     <div className="h-full overflow-y-auto p-6 max-w-xl mx-auto">
       <h1 className="text-xl font-semibold text-gray-900 mb-4">
-        {isAdmin ? 'Yeni Mekan Ekle' : 'Mekan Öner'}
+        {isEdit ? 'Mekanı Düzenle' : isAdmin ? 'Yeni Mekan Ekle' : 'Mekan Öner'}
       </h1>
-      {!isAdmin && (
+      {!isEdit && !isAdmin && (
         <p className="text-xs text-gray-500 mb-4">
           Önerdiğiniz mekan, admin onayından sonra herkese açık listede görünür.
         </p>
@@ -260,7 +298,7 @@ export default function AddPlacePage() {
           disabled={submitting}
           className="bg-brand-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
-          {submitting ? 'Kaydediliyor...' : isAdmin ? 'Mekanı Kaydet' : 'Öneriyi Gönder'}
+          {submitting ? 'Kaydediliyor...' : isEdit ? 'Güncelle' : isAdmin ? 'Mekanı Kaydet' : 'Öneriyi Gönder'}
         </button>
       </form>
     </div>

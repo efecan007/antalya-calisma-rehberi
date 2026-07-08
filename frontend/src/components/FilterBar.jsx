@@ -1,4 +1,4 @@
-import { REGIONS, PLACE_TYPES, SORT_OPTIONS } from '../constants';
+import { REGIONS, PLACE_TYPES, SORT_OPTIONS, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
 
 export default function FilterBar({ filters, onChange }) {
   function update(key, value) {
@@ -6,7 +6,7 @@ export default function FilterBar({ filters, onChange }) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 p-3 bg-white border-b border-gray-200">
+    <div className="grid grid-cols-2 md:grid-cols-9 gap-2 p-3 bg-white border-b border-gray-200">
       <input
         type="text"
         placeholder="İsim veya adres ara..."
@@ -57,6 +57,39 @@ export default function FilterBar({ filters, onChange }) {
         <option value="">Tüm Puanlar</option>
         <option value="3">3+ Puan</option>
         <option value="4">4+ Puan</option>
+      </select>
+      <select
+        value={filters.minInternetSpeed}
+        onChange={(e) => update('minInternetSpeed', e.target.value)}
+        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+      >
+        <option value="">Tüm İnternet Hızları</option>
+        <option value="3">3+ İnternet Hızı</option>
+        <option value="4">4+ İnternet Hızı</option>
+      </select>
+      <select
+        value={filters.noiseLevel}
+        onChange={(e) => update('noiseLevel', e.target.value)}
+        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+      >
+        <option value="">Tüm Sessizlik Seviyeleri</option>
+        {NOISE_LEVEL_OPTIONS.map((l) => (
+          <option key={l.value} value={l.value}>
+            Sessizlik: {l.label}
+          </option>
+        ))}
+      </select>
+      <select
+        value={filters.outletLevel}
+        onChange={(e) => update('outletLevel', e.target.value)}
+        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+      >
+        <option value="">Tüm Priz Durumları</option>
+        {LEVEL_OPTIONS.map((l) => (
+          <option key={l.value} value={l.value}>
+            Priz: {l.label}
+          </option>
+        ))}
       </select>
       <select
         value={filters.sort}

@@ -69,4 +69,20 @@ describe('ListPlacesUseCase', () => {
     const result = await useCase.execute({ minRating: '4' });
     expect(result.map((p) => p.id)).toEqual([2]);
   });
+
+  it('minInternetSpeed filtresi düşük hızlıları eler', async () => {
+    const places = [makePlace(1, 2), makePlace(2, 5)];
+    const deps = buildDeps(places);
+    const useCase = new ListPlacesUseCase(deps);
+    const result = await useCase.execute({ minInternetSpeed: '4' });
+    expect(result.map((p) => p.id)).toEqual([2]);
+  });
+
+  it('outletLevel ve noiseLevel filtrelerini repository katmanına iletir', async () => {
+    const deps = buildDeps([]);
+    const useCase = new ListPlacesUseCase(deps);
+    await useCase.execute({ outletLevel: 'HIGH', noiseLevel: 'LOW' });
+    expect(deps.placeRepository.lastFilters.outletLevel).toBe('HIGH');
+    expect(deps.placeRepository.lastFilters.noiseLevel).toBe('LOW');
+  });
 });

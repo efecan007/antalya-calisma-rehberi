@@ -11,12 +11,14 @@ class PrismaPlaceRepository extends PlaceRepository {
     this.prisma = prisma;
   }
 
-  async findMany({ region, type, maxPrice, search, status } = {}) {
+  async findMany({ region, type, maxPrice, search, status, outletLevel, noiseLevel } = {}) {
     const where = {};
     if (status) where.status = status;
     if (region) where.region = region;
     if (type) where.type = type;
     if (maxPrice) where.priceLevel = { lte: Number(maxPrice) };
+    if (outletLevel) where.outletLevel = outletLevel;
+    if (noiseLevel) where.noiseLevel = noiseLevel;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },

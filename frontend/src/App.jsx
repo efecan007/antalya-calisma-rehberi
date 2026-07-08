@@ -3,6 +3,8 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
+import PlaceListPage from './pages/PlaceListPage';
+import MapPage from './pages/MapPage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -18,6 +20,8 @@ export default function App() {
       <main className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/mekanlar" element={<PlaceListPage />} />
+          <Route path="/harita" element={<MapPage />} />
           <Route path="/mekan/:id" element={<PlaceDetailPage />} />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/kayit" element={<RegisterPage />} />
@@ -50,6 +54,14 @@ export default function App() {
             element={
               <AdminRoute>
                 <AdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/mekanlar/:id/duzenle"
+            element={
+              <AdminRoute>
+                <AddPlacePage />
               </AdminRoute>
             }
           />

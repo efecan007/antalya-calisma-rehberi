@@ -1,49 +1,29 @@
-import { useEffect, useState } from 'react';
-import apiClient from '../api/client';
-import FilterBar from '../components/FilterBar';
-import PlaceList from '../components/PlaceList';
-import MapView from '../components/MapView';
-
-const DEFAULT_FILTERS = { search: '', region: '', type: '', maxPrice: '', minRating: '', sort: '' };
+import { Link } from 'react-router-dom';
 
 export default function HomePage() {
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState(null);
-
-  useEffect(() => {
-    const { sort, ...rest } = filters;
-    const params = Object.fromEntries(Object.entries(rest).filter(([, v]) => v));
-    if (sort) {
-      const [sortBy, sortOrder] = sort.split('-');
-      params.sortBy = sortBy;
-      params.sortOrder = sortOrder;
-    }
-    const timeout = setTimeout(() => {
-      setLoading(true);
-      apiClient
-        .get('/places', { params })
-        .then(({ data }) => setPlaces(data))
-        .finally(() => setLoading(false));
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [filters]);
-
   return (
-    <div className="h-full flex flex-col">
-      <FilterBar filters={filters} onChange={setFilters} />
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-full md:w-96 overflow-y-auto p-3 border-r border-gray-200">
-          {loading ? (
-            <p className="text-sm text-gray-500">Yükleniyor...</p>
-          ) : (
-            <PlaceList places={places} activeId={activeId} onHover={setActiveId} />
-          )}
-        </div>
-        <div className="hidden md:block flex-1">
-          <MapView places={places} activeId={activeId} onMarkerHover={setActiveId} />
-        </div>
+    <div className="h-full overflow-y-auto flex flex-col items-center justify-center text-center px-6 bg-gradient-to-b from-brand-50 to-white">
+      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 max-w-2xl">
+        Antalya'da laptopunu açıp rahatça çalışabileceğin en iyi mekanları keşfet
+      </h1>
+      <p className="mt-4 text-gray-600 max-w-xl">
+        Otel lobileri, kafeler, kütüphaneler ve coworking alanlarını internet hızı, sessizlik,
+        priz durumu, kahve kalitesi ve genel puana göre karşılaştır; sana en uygun çalışma
+        noktasını bul.
+      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/mekanlar"
+          className="bg-brand-600 text-white px-5 py-2.5 rounded-md font-medium hover:bg-brand-700"
+        >
+          Mekanları Keşfet
+        </Link>
+        <Link
+          to="/harita"
+          className="bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-md font-medium hover:border-brand-400"
+        >
+          Haritada Gör
+        </Link>
       </div>
     </div>
   );
