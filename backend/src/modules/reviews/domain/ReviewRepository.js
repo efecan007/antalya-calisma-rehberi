@@ -1,4 +1,8 @@
 class ReviewRepository {
+  async findMany() {
+    throw new Error('Not implemented');
+  }
+
   async findByPlaceAndUser(_placeId, _userId) {
     throw new Error('Not implemented');
   }

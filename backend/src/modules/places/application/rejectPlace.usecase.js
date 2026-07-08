@@ -1,27 +1,26 @@
-const { NotFoundError, ForbiddenError } = require('../../../shared/domain/errors');
+const { NotFoundError } = require('../../../shared/domain/errors');
 
-class DeletePlaceUseCase {
+class RejectPlaceUseCase {
   constructor({ placeRepository, cache }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
   }
 
-  async execute({ id, requesterRole }) {
+  async execute({ id }) {
     const place = await this.placeRepository.findById(id);
     if (!place) {
       throw new NotFoundError('Mekan bulunamadı');
     }
-    if (requesterRole !== 'ADMIN') {
-      throw new ForbiddenError('Bu mekanı silme yetkiniz yok');
-    }
 
-    await this.placeRepository.delete(id);
+    const updated = await this.placeRepository.update(id, { status: 'REJECTED' });
 
     if (this.cache) {
       await this.cache.del(`places:detail:${id}`);
       await this.cache.invalidate('places:list:*');
     }
+
+    return updated.toJSON();
   }
 }
 
-module.exports = DeletePlaceUseCase;
+module.exports = RejectPlaceUseCase;

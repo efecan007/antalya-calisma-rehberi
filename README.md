@@ -64,7 +64,13 @@ docker compose up --build
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
 
-İlk açılışta backend, `prisma db push` ile şemayı oluşturur ve örnek Antalya mekanlarıyla (`prisma/seed.js`) veritabanını doldurur. Demo kullanıcı: `demo@workfromhotel.com` / `Password123!`.
+İlk açılışta backend, `prisma db push` ile şemayı oluşturur ve örnek Antalya mekanlarıyla (`prisma/seed.js`) veritabanını doldurur. Demo kullanıcı: `demo@workfromhotel.com` / `Password123!`. Demo admin: `admin@workfromhotel.com` / `Password123!`.
+
+## Kullanıcı Rolleri
+
+- **Ziyaretçi** (giriş yapmamış): mekanları görüntüler, haritada inceler, bölge/tür/fiyat/puana göre filtreler, internet hızı/sessizlik/priz/kahve kalitesi/puana göre sıralar, mekan detayını görür.
+- **Kayıtlı kullanıcı**: JWT ile giriş yapar, mekanlara yorum + puan bırakır, mekanları favorilerine ekler (`/favorilerim`), yeni mekan **önerisi** gönderir (admin onayına kadar `PENDING` durumda, herkese açık listede görünmez).
+- **Admin**: `/admin` panelinden bekleyen mekan önerilerini onaylar/reddeder, doğrudan mekan ekler/düzenler/siler, tüm kullanıcıların yorumlarını moderasyon amacıyla silebilir.
 
 ## Yerel Geliştirme (Docker olmadan)
 
@@ -91,11 +97,15 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 ## API Uç Noktaları
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
 - `GET /api/regions`
-- `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `search`)
-- `GET /api/places/:id`
-- `POST /api/places`, `PUT /api/places/:id`, `DELETE /api/places/:id` (JWT gerekli)
+- `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
+- `GET /api/places/:id` — onaylı mekan herkese açık; `PENDING`/`REJECTED` mekan yalnızca sahibi veya admin tarafından görülebilir
+- `POST /api/places` (JWT gerekli) — admin doğrudan yayınlar (`APPROVED`), normal kullanıcı öneri gönderir (`PENDING`)
+- `PUT /api/places/:id`, `DELETE /api/places/:id` (yalnızca admin)
+- `GET /api/places/pending`, `POST /api/places/:id/approve`, `POST /api/places/:id/reject` (yalnızca admin)
 - `POST /api/places/:id/reviews` (JWT gerekli)
-- `PUT /api/reviews/:id`, `DELETE /api/reviews/:id` (JWT gerekli, sadece sahibi)
+- `PUT /api/reviews/:id` (JWT gerekli, sadece sahibi), `DELETE /api/reviews/:id` (sahibi veya admin)
+- `GET /api/reviews` (yalnızca admin, moderasyon için tüm yorumlar)
+- `POST /api/places/:id/favorite`, `DELETE /api/places/:id/favorite`, `GET /api/favorites` (JWT gerekli)
 
 ## Future Improvements
 

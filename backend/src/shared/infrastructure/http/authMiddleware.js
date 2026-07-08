@@ -1,5 +1,5 @@
 const { verifyToken } = require('../security/jwt');
-const { UnauthorizedError } = require('../../domain/errors');
+const { UnauthorizedError, ForbiddenError } = require('../../domain/errors');
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;
@@ -16,6 +16,13 @@ function requireAuth(req, res, next) {
   }
 }
 
+function requireAdmin(req, _res, next) {
+  if (req.user?.role !== 'ADMIN') {
+    return next(new ForbiddenError('Bu işlem için admin yetkisi gerekli'));
+  }
+  next();
+}
+
 function optionalAuth(req, _res, next) {
   const header = req.headers.authorization;
   if (header && header.startsWith('Bearer ')) {
@@ -28,4 +35,4 @@ function optionalAuth(req, _res, next) {
   next();
 }
 
-module.exports = { requireAuth, optionalAuth };
+module.exports = { requireAuth, requireAdmin, optionalAuth };

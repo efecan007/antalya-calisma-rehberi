@@ -8,12 +8,12 @@ class UpdatePlaceUseCase {
     this.cache = cache;
   }
 
-  async execute({ id, requesterId, requesterRole, changes }) {
+  async execute({ id, requesterRole, changes }) {
     const place = await this.placeRepository.findById(id);
     if (!place) {
       throw new NotFoundError('Mekan bulunamadı');
     }
-    if (place.createdById !== requesterId && requesterRole !== 'ADMIN') {
+    if (requesterRole !== 'ADMIN') {
       throw new ForbiddenError('Bu mekanı düzenleme yetkiniz yok');
     }
 

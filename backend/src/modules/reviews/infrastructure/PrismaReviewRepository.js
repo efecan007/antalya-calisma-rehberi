@@ -11,6 +11,25 @@ class PrismaReviewRepository extends ReviewRepository {
     this.prisma = prisma;
   }
 
+  async findMany() {
+    const records = await this.prisma.review.findMany({
+      include: {
+        user: { select: { id: true, name: true } },
+        place: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return records.map((record) => ({
+      id: record.id,
+      placeId: record.placeId,
+      place: record.place,
+      user: record.user,
+      overallRating: record.overallRating,
+      comment: record.comment,
+      createdAt: record.createdAt,
+    }));
+  }
+
   async findByPlaceAndUser(placeId, userId) {
     const record = await this.prisma.review.findUnique({
       where: { placeId_userId: { placeId, userId } },

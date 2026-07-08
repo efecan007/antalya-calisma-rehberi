@@ -14,6 +14,7 @@ class Place {
     description,
     priceLevel,
     imageUrl,
+    status,
     createdById,
     createdAt,
     reviews = [],
@@ -31,6 +32,7 @@ class Place {
     this.description = description ?? null;
     this.priceLevel = priceLevel;
     this.imageUrl = imageUrl ?? null;
+    this.status = status ?? 'APPROVED';
     this.createdById = createdById ?? null;
     this.createdAt = createdAt;
     this.reviews = reviews;

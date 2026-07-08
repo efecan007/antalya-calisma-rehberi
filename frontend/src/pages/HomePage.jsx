@@ -4,7 +4,7 @@ import FilterBar from '../components/FilterBar';
 import PlaceList from '../components/PlaceList';
 import MapView from '../components/MapView';
 
-const DEFAULT_FILTERS = { search: '', region: '', type: '', maxPrice: '', minRating: '' };
+const DEFAULT_FILTERS = { search: '', region: '', type: '', maxPrice: '', minRating: '', sort: '' };
 
 export default function HomePage() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -13,7 +13,13 @@ export default function HomePage() {
   const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
-    const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
+    const { sort, ...rest } = filters;
+    const params = Object.fromEntries(Object.entries(rest).filter(([, v]) => v));
+    if (sort) {
+      const [sortBy, sortOrder] = sort.split('-');
+      params.sortBy = sortBy;
+      params.sortOrder = sortOrder;
+    }
     const timeout = setTimeout(() => {
       setLoading(true);
       apiClient

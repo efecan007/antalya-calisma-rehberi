@@ -4,6 +4,7 @@ const cors = require('cors');
 const usersRoutes = require('../../../modules/users/infrastructure/users.routes');
 const placesRoutes = require('../../../modules/places/infrastructure/places.routes');
 const reviewsRoutes = require('../../../modules/reviews/infrastructure/reviews.routes');
+const favoritesRoutes = require('../../../modules/favorites/infrastructure/favorites.routes');
 const { listRegions } = require('../../../modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./errorMiddleware');
 
@@ -18,6 +19,7 @@ function createApp() {
   app.use('/api/auth', usersRoutes);
   app.use('/api/places', placesRoutes);
   app.use('/api/reviews', reviewsRoutes);
+  app.use('/api/favorites', favoritesRoutes);
 
   app.use(notFoundHandler);
   app.use(errorMiddleware);

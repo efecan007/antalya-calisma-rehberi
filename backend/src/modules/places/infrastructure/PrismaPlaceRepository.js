@@ -11,8 +11,9 @@ class PrismaPlaceRepository extends PlaceRepository {
     this.prisma = prisma;
   }
 
-  async findMany({ region, type, maxPrice, search } = {}) {
+  async findMany({ region, type, maxPrice, search, status } = {}) {
     const where = {};
+    if (status) where.status = status;
     if (region) where.region = region;
     if (type) where.type = type;
     if (maxPrice) where.priceLevel = { lte: Number(maxPrice) };

@@ -25,6 +25,14 @@ export default function Navbar() {
             <Link to="/mekan-ekle" className="hover:text-brand-100">
               Mekan Ekle
             </Link>
+            <Link to="/favorilerim" className="hover:text-brand-100">
+              Favorilerim
+            </Link>
+            {user.role === 'ADMIN' && (
+              <Link to="/admin" className="hover:text-brand-100">
+                Admin Paneli
+              </Link>
+            )}
             <Link to="/profil" className="hover:text-brand-100">
               {user.name}
             </Link>

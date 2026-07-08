@@ -8,7 +8,7 @@ class GetPlaceUseCase {
     this.cache = cache;
   }
 
-  async execute({ id }) {
+  async execute({ id, requesterId, requesterRole }) {
     const cacheKey = `places:detail:${id}`;
 
     const fetch = async () => {
@@ -19,8 +19,21 @@ class GetPlaceUseCase {
       return place.toJSON();
     };
 
-    if (!this.cache) return fetch();
-    return this.cache.getOrSet(cacheKey, DETAIL_CACHE_TTL_SECONDS, fetch);
+    const result = this.cache
+      ? await this.cache.getOrSet(cacheKey, DETAIL_CACHE_TTL_SECONDS, fetch)
+      : await fetch();
+
+    // Visibility check runs on every call (cache hit or miss) so a cached
+    // pending/rejected place can never leak to an unauthorized requester.
+    if (result.status !== 'APPROVED') {
+      const isOwner = requesterId != null && result.createdById === requesterId;
+      const isAdmin = requesterRole === 'ADMIN';
+      if (!isOwner && !isAdmin) {
+        throw new NotFoundError('Mekan bulunamadı');
+      }
+    }
+
+    return result;
   }
 }
 

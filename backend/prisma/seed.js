@@ -120,6 +120,17 @@ async function main() {
     },
   });
 
+  await prisma.user.upsert({
+    where: { email: 'admin@workfromhotel.com' },
+    update: {},
+    create: {
+      email: 'admin@workfromhotel.com',
+      passwordHash,
+      name: 'Demo Admin',
+      role: 'ADMIN',
+    },
+  });
+
   for (const placeData of PLACES) {
     const existing = await prisma.place.findFirst({ where: { name: placeData.name } });
     if (existing) continue;

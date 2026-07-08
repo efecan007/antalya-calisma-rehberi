@@ -6,12 +6,12 @@ class DeleteReviewUseCase {
     this.cache = cache;
   }
 
-  async execute({ reviewId, userId }) {
+  async execute({ reviewId, userId, requesterRole }) {
     const review = await this.reviewRepository.findById(reviewId);
     if (!review) {
       throw new NotFoundError('Yorum bulunamadı');
     }
-    if (review.userId !== userId) {
+    if (review.userId !== userId && requesterRole !== 'ADMIN') {
       throw new ForbiddenError('Bu yorumu silme yetkiniz yok');
     }
 

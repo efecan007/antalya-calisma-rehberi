@@ -28,6 +28,12 @@ enum Region {
   AKSU
 }
 
+enum PlaceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -36,12 +42,13 @@ model User {
   role         Role     @default(USER)
   createdAt    DateTime @default(now())
 
-  places  Place[]
-  reviews Review[]
+  places    Place[]
+  reviews   Review[]
+  favorites Favorite[]
 }
 
 model Place {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   type        PlaceType
   region      Region
@@ -49,13 +56,15 @@ model Place {
   lat         Float
   lng         Float
   description String?
-  priceLevel  Int       @default(2)
+  priceLevel  Int         @default(2)
   imageUrl    String?
+  status      PlaceStatus @default(APPROVED)
   createdById Int?
-  createdBy   User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt   DateTime  @default(now())
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
 
-  reviews Review[]
+  reviews   Review[]
+  favorites Favorite[]
 }
 
 model Review {
@@ -75,4 +84,15 @@ model Review {
   createdAt        DateTime @default(now())
 
   @@unique([placeId, userId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   Int
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
 }

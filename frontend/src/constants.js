@@ -24,6 +24,16 @@ export const RATING_CRITERIA = [
   { field: 'overallRating', label: 'Genel Puan' },
 ];
 
+export const SORT_OPTIONS = [
+  { value: '', label: 'Varsayılan (En Yeni)' },
+  { value: 'overallRating-desc', label: 'Puan: Yüksekten Düşüğe' },
+  { value: 'overallRating-asc', label: 'Puan: Düşükten Yükseğe' },
+  { value: 'internetSpeed-desc', label: 'İnternet Hızı: Yüksekten Düşüğe' },
+  { value: 'noiseLevel-desc', label: 'Sessizlik: Yüksekten Düşüğe' },
+  { value: 'outletCount-desc', label: 'Priz Sayısı: Yüksekten Düşüğe' },
+  { value: 'coffeeQuality-desc', label: 'Kahve Kalitesi: Yüksekten Düşüğe' },
+];
+
 export function regionLabel(value) {
   return REGIONS.find((r) => r.value === value)?.label || value;
 }

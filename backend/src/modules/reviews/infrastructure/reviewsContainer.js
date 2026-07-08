@@ -10,6 +10,7 @@ const PrismaPlaceRepository = require('../../places/infrastructure/PrismaPlaceRe
 const CreateReviewUseCase = require('../application/createReview.usecase');
 const UpdateReviewUseCase = require('../application/updateReview.usecase');
 const DeleteReviewUseCase = require('../application/deleteReview.usecase');
+const ListAllReviewsUseCase = require('../application/listAllReviews.usecase');
 
 const reviewRepository = new PrismaReviewRepository(prisma);
 const placeRepository = new PrismaPlaceRepository(prisma);
@@ -17,5 +18,12 @@ const placeRepository = new PrismaPlaceRepository(prisma);
 const createReviewUseCase = new CreateReviewUseCase({ reviewRepository, placeRepository, cache });
 const updateReviewUseCase = new UpdateReviewUseCase({ reviewRepository, cache });
 const deleteReviewUseCase = new DeleteReviewUseCase({ reviewRepository, cache });
+const listAllReviewsUseCase = new ListAllReviewsUseCase({ reviewRepository });
 
-module.exports = { reviewRepository, createReviewUseCase, updateReviewUseCase, deleteReviewUseCase };
+module.exports = {
+  reviewRepository,
+  createReviewUseCase,
+  updateReviewUseCase,
+  deleteReviewUseCase,
+  listAllReviewsUseCase,
+};

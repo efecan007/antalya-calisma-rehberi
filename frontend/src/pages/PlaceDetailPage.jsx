@@ -6,6 +6,12 @@ import { regionLabel, typeLabel, RATING_CRITERIA } from '../constants';
 import RatingStars from '../components/RatingStars';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
+import FavoriteButton from '../components/FavoriteButton';
+
+const STATUS_LABELS = {
+  PENDING: { text: 'Onay Bekliyor', className: 'bg-amber-100 text-amber-700' },
+  REJECTED: { text: 'Reddedildi', className: 'bg-red-100 text-red-700' },
+};
 
 export default function PlaceDetailPage() {
   const { id } = useParams();
@@ -36,7 +42,15 @@ export default function PlaceDetailPage() {
       <Link to="/" className="text-sm text-brand-600 hover:underline">
         ← Keşfete dön
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-2">{place.name}</h1>
+      <div className="flex items-center gap-2 mt-2">
+        <h1 className="text-2xl font-semibold text-gray-900">{place.name}</h1>
+        <FavoriteButton placeId={place.id} className="text-2xl" />
+        {STATUS_LABELS[place.status] && (
+          <span className={`text-xs px-2 py-0.5 rounded ${STATUS_LABELS[place.status].className}`}>
+            {STATUS_LABELS[place.status].text}
+          </span>
+        )}
+      </div>
       <p className="text-sm text-gray-500 mt-1">
         {typeLabel(place.type)} · {regionLabel(place.region)} · {place.address}
       </p>

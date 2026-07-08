@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import RatingStars from './RatingStars';
+import FavoriteButton from './FavoriteButton';
 import { regionLabel, typeLabel } from '../constants';
 
 export default function PlaceCard({ place, active, onHover }) {
@@ -13,9 +14,12 @@ export default function PlaceCard({ place, active, onHover }) {
     >
       <div className="flex items-center justify-between">
         <h3 className="font-medium text-gray-900">{place.name}</h3>
-        <span className="text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-600">
-          {typeLabel(place.type)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-600">
+            {typeLabel(place.type)}
+          </span>
+          <FavoriteButton placeId={place.id} />
+        </div>
       </div>
       <p className="text-xs text-gray-500 mt-0.5">
         {regionLabel(place.region)} · {place.address}
