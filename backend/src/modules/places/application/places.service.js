@@ -19,6 +19,24 @@ function normalizePhotoUrls(photoUrls) {
   return photoUrls.map((url) => String(url).trim()).filter(Boolean);
 }
 
+function assertValidCoordinates(lat, lng) {
+  const latNum = Number(lat);
+  const lngNum = Number(lng);
+  if (!Number.isFinite(latNum) || latNum < -90 || latNum > 90) {
+    throw new ValidationError('lat -90 ile 90 arasında bir sayı olmalıdır');
+  }
+  if (!Number.isFinite(lngNum) || lngNum < -180 || lngNum > 180) {
+    throw new ValidationError('lng -180 ile 180 arasında bir sayı olmalıdır');
+  }
+}
+
+function assertValidPriceLevel(priceLevel) {
+  const num = Number(priceLevel);
+  if (!Number.isInteger(num) || num < 1 || num > 4) {
+    throw new ValidationError('priceLevel 1 ile 4 arasında bir tam sayı olmalıdır');
+  }
+}
+
 class PlacesService {
   constructor({ placeRepository, cache }) {
     this.placeRepository = placeRepository;
@@ -123,6 +141,8 @@ class PlacesService {
     }
     PlaceType.assertValid(type);
     Region.assertValid(region);
+    assertValidCoordinates(lat, lng);
+    if (priceLevel !== undefined) assertValidPriceLevel(priceLevel);
     if (outletLevel !== undefined) LevelRating.assertValid(outletLevel, 'outletLevel');
     if (noiseLevel !== undefined) LevelRating.assertValid(noiseLevel, 'noiseLevel');
 
@@ -166,6 +186,10 @@ class PlacesService {
 
     if (changes.type !== undefined) PlaceType.assertValid(changes.type);
     if (changes.region !== undefined) Region.assertValid(changes.region);
+    if (changes.lat !== undefined || changes.lng !== undefined) {
+      assertValidCoordinates(changes.lat ?? place.lat, changes.lng ?? place.lng);
+    }
+    if (changes.priceLevel !== undefined) assertValidPriceLevel(changes.priceLevel);
     if (changes.outletLevel !== undefined) LevelRating.assertValid(changes.outletLevel, 'outletLevel');
     if (changes.noiseLevel !== undefined) LevelRating.assertValid(changes.noiseLevel, 'noiseLevel');
 

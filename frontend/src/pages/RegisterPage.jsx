@@ -48,9 +48,9 @@ export default function RegisterPage() {
         />
         <input
           type="password"
-          placeholder="Şifre"
+          placeholder="Şifre (en az 8 karakter)"
           required
-          minLength={6}
+          minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"

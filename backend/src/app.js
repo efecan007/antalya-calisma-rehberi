@@ -9,12 +9,14 @@ const suggestionsRoutes = require('./modules/suggestions/infrastructure/suggesti
 const adminRoutes = require('./modules/admin/infrastructure/admin.routes');
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./common/filters/error.filter');
+const { generalLimiter } = require('./common/guards/rate-limit.guard');
 
 function createApp() {
   const app = express();
 
   app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
   app.use(express.json());
+  app.use('/api', generalLimiter);
 
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
   app.get('/api/regions', listRegions);

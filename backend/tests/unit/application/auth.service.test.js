@@ -38,7 +38,7 @@ function buildService(overrides = {}) {
 describe('AuthService.register', () => {
   it('geçerli veriyle yeni kullanıcı oluşturur ve token döner', async () => {
     const service = buildService();
-    const result = await service.register({ email: 'a@b.com', password: 'secret', name: 'Ali' });
+    const result = await service.register({ email: 'a@b.com', password: 'secret123', name: 'Ali' });
 
     expect(result.token).toBe('token-for-1');
     expect(result.user.email).toBe('a@b.com');
@@ -50,13 +50,37 @@ describe('AuthService.register', () => {
     await expect(service.register({ email: '', password: '', name: '' })).rejects.toThrow(ValidationError);
   });
 
+  it('geçersiz e-posta formatında ValidationError fırlatır', async () => {
+    const service = buildService();
+    await expect(
+      service.register({ email: 'not-an-email', password: 'secret123', name: 'Ali' })
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it('8 karakterden kısa şifrede ValidationError fırlatır', async () => {
+    const service = buildService();
+    await expect(
+      service.register({ email: 'a@b.com', password: 'short', name: 'Ali' })
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it('e-postayı küçük harfe çevirip boşlukları temizler', async () => {
+    const service = buildService();
+    const result = await service.register({
+      email: '  Ali@Example.COM  ',
+      password: 'secret123',
+      name: 'Ali',
+    });
+    expect(result.user.email).toBe('ali@example.com');
+  });
+
   it('e-posta zaten kayıtlıysa ConflictError fırlatır', async () => {
     const userRepository = createInMemoryUserRepository();
     const service = buildService({ userRepository });
 
-    await service.register({ email: 'a@b.com', password: 'secret', name: 'Ali' });
+    await service.register({ email: 'a@b.com', password: 'secret123', name: 'Ali' });
     await expect(
-      service.register({ email: 'a@b.com', password: 'secret2', name: 'Veli' })
+      service.register({ email: 'a@b.com', password: 'secret1234', name: 'Veli' })
     ).rejects.toThrow(ConflictError);
   });
 });
@@ -65,16 +89,16 @@ describe('AuthService.login', () => {
   it('doğru şifre ile token döner', async () => {
     const userRepository = createInMemoryUserRepository();
     const service = buildService({ userRepository });
-    await service.register({ email: 'a@b.com', password: 'secret', name: 'Ali' });
+    await service.register({ email: 'a@b.com', password: 'secret123', name: 'Ali' });
 
-    const result = await service.login({ email: 'a@b.com', password: 'secret' });
+    const result = await service.login({ email: 'a@b.com', password: 'secret123' });
     expect(result.token).toBe('token-for-1');
   });
 
   it('yanlış şifrede UnauthorizedError fırlatır', async () => {
     const userRepository = createInMemoryUserRepository();
     const service = buildService({ userRepository });
-    await service.register({ email: 'a@b.com', password: 'secret', name: 'Ali' });
+    await service.register({ email: 'a@b.com', password: 'secret123', name: 'Ali' });
 
     await expect(service.login({ email: 'a@b.com', password: 'yanlis' })).rejects.toThrow(
       UnauthorizedError
@@ -83,7 +107,7 @@ describe('AuthService.login', () => {
 
   it('kayıtsız e-postada UnauthorizedError fırlatır', async () => {
     const service = buildService();
-    await expect(service.login({ email: 'yok@b.com', password: 'secret' })).rejects.toThrow(
+    await expect(service.login({ email: 'yok@b.com', password: 'secret123' })).rejects.toThrow(
       UnauthorizedError
     );
   });
@@ -98,7 +122,7 @@ describe('AuthService.getCurrentUser', () => {
   it('kullanıcı bilgisini parola olmadan döner', async () => {
     const userRepository = createInMemoryUserRepository();
     const service = buildService({ userRepository });
-    await service.register({ email: 'a@b.com', password: 'secret', name: 'Ali' });
+    await service.register({ email: 'a@b.com', password: 'secret123', name: 'Ali' });
 
     const result = await service.getCurrentUser({ userId: 1 });
     expect(result.email).toBe('a@b.com');

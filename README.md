@@ -163,6 +163,24 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 - `GET /api/admin/users`, `DELETE /api/admin/users/:id` (kendi hesabını silemez)
 - `GET /api/reviews` (yalnızca admin, moderasyon için tüm yorumlar)
 
+## Güvenlik
+
+- **Şifre hashleme**: Kullanıcı şifreleri hiçbir zaman düz metin olarak saklanmaz; `bcryptjs` ile 10 salt round kullanılarak hashlenir (`common/security/password.js`). Girişte hash karşılaştırması (`comparePassword`) yapılır, düz metin şifre asla veritabanına yazılmaz.
+- **JWT access token**: Kimlik doğrulama tamamen stateless JWT ile yapılır (`common/security/jwt.js`). Token, `JWT_SECRET` ile imzalanır ve `JWT_EXPIRES_IN` süresi sonunda geçersiz olur. Korumalı her istek `Authorization: Bearer <token>` header'ı ile gelir ve `common/guards/auth.guard.js`'teki `requireAuth` middleware'i tarafından her seferinde yeniden doğrulanır — token bir kez doğrulanıp önbelleğe alınmaz.
+- **Role-based authorization**: Admin'e özel her endpoint (`/api/admin/*`, mekan ekleme/güncelleme/silme, öneri onay/red, yorum moderasyonu) `requireAdmin` guard'ı ile korunur; bu guard `requireAuth`'tan sonra çalışır ve `req.user.role !== 'ADMIN'` olduğunda `403 Forbidden` döner. Yetki kontrolü yalnızca route seviyesinde değil, ilgili servis metodunda da (ör. `PlacesService.updatePlace`, `AdminService.deleteUser`) tekrar doğrulanır.
+- **`.env` içinde `JWT_SECRET`**: Gizli anahtar asla koda gömülmez; `backend/.env.example` şablonunda yer alır, gerçek değer yalnızca `.env` (git'e dahil değil) veya Docker Compose ortam değişkenlerinden okunur.
+- **Input validation**: Her katmanda girdi doğrulanır — `AuthService.register` e-posta formatını (regex) ve minimum şifre uzunluğunu (8 karakter) kontrol eder, e-postayı normalize eder (trim + lowercase); `PlacesService` koordinatları (`lat` -90/90, `lng` -180/180 aralığında), `priceLevel`'ı (1-4 arası tam sayı) ve enum alanları (`PlaceType`, `Region`, `LevelRating`) doğrular; `Rating` value object'i her review puanının 1-5 arası tam sayı olduğunu garanti eder. Geçersiz girdi her zaman `400 ValidationError` ile reddedilir, veritabanına asla ulaşmaz.
+- **Rate limiting**: `express-rate-limit` ile iki katman uygulanır (`common/guards/rate-limit.guard.js`) — tüm `/api` trafiği için gevşek bir taban limit (15 dakikada 300 istek) ve brute-force şifre denemelerine karşı `/api/auth/register` + `/api/auth/login` için daha sıkı bir limit (15 dakikada 10 istek). Test ortamında (`NODE_ENV=test`) devre dışı bırakılır, aksi halde e2e testlerinin tek process'te art arda yaptığı çok sayıda register/login çağrısı testleri kırar.
+
+### Zero Trust
+
+Bu sistemde **"Her istek doğrulanmadan güvenilir kabul edilmez."** ilkesi uygulanır: bir isteğin daha önce doğrulanmış olması, aynı oturum içinde gelmesi veya güvenilir bir ağdan/istemciden gelmesi onu otomatik olarak yetkili kılmaz — her istek, üzerinde taşıdığı kimlik bilgisiyle (JWT) tek başına yeniden değerlendirilir. Pratikte bu şu şekillerde karşılığını bulur:
+
+- JWT her istekte `requireAuth`/`optionalAuth` tarafından yeniden doğrulanır (imza + süre kontrolü); geçerli bir önceki istek, sonraki isteği otomatik güvenilir kılmaz.
+- Rol kontrolü (`requireAdmin`) route seviyesinde *ve* servis metodunda tekrar yapılır; bir kullanıcının admin olup olmadığı her admin işleminde yeniden sorgulanır, tek bir yerde "zaten admin" varsayımıyla geçilmez.
+- Mekan görünürlüğü (`PlacesService.getPlace`) Redis cache'ten dönen sonuç için bile her çağrıda yeniden değerlendirilir — önbellekte `PENDING`/`REJECTED` bir mekan bulunsa dahi, isteği yapanın sahibi veya admin olduğu her seferinde yeniden kontrol edilir; cache hit'i yetki kontrolünü asla atlamaz.
+- Sahiplik/yetki kontrolleri (yorum silme, favori işlemleri) her zaman sunucu tarafında, istemciden gelen `userId` yerine JWT'den çözülen kimliğe göre yapılır — istemcinin "ben buyum" demesi yeterli değildir.
+
 ## Future Improvements
 
 Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı çünkü tek ekip/öğrenci projesi için yönetilebilirlik, basit deploy ve düşük operasyonel yük daha değerli. Aşağıdaki konular şu an **kapsam dışı** bırakıldı ama mevcut modüler yapı (her modülün kendi domain/application/infrastructure katmanları ve repository port'ları olması) bunlara ileride evrilmeyi kolaylaştırıyor:

@@ -92,6 +92,23 @@ describe('PlacesService.createPlace', () => {
     ).rejects.toThrow(ValidationError);
   });
 
+  it('geçersiz lat/lng ValidationError fırlatır', async () => {
+    const service = new PlacesService(buildDeps());
+    await expect(
+      service.createPlace(validInput({ createdById: 1, requesterRole: 'ADMIN', lat: 200 }))
+    ).rejects.toThrow(ValidationError);
+    await expect(
+      service.createPlace(validInput({ createdById: 1, requesterRole: 'ADMIN', lng: 'abc' }))
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it('geçersiz priceLevel ValidationError fırlatır', async () => {
+    const service = new PlacesService(buildDeps());
+    await expect(
+      service.createPlace(validInput({ createdById: 1, requesterRole: 'ADMIN', priceLevel: 9 }))
+    ).rejects.toThrow(ValidationError);
+  });
+
   it('yeni alanlar belirtilmezse mantıklı varsayılanlar kullanılır', async () => {
     const service = new PlacesService(buildDeps());
     const place = await service.createPlace(validInput({ createdById: 1, requesterRole: 'ADMIN' }));
