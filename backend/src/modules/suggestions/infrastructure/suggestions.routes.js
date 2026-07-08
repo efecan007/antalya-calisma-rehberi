@@ -1,11 +1,13 @@
+/**
+ * Mekan önerisi gönderme; `/api/suggestions` altında mount edilir.
+ * Onay/red/listeleme (admin) suggestions.admin.routes.js'te ayrı yaşar.
+ */
 const { Router } = require('express');
-const { listPendingPlaces, approvePlace, rejectPlace } = require('./suggestions.controller');
-const { requireAuth, requireAdmin } = require('../../../common/guards/auth.guard');
+const { submitSuggestion } = require('./suggestions.controller');
+const { requireAuth } = require('../../../common/guards/auth.guard');
 
 const router = Router();
 
-router.get('/pending', requireAuth, requireAdmin, listPendingPlaces);
-router.post('/:id/approve', requireAuth, requireAdmin, approvePlace);
-router.post('/:id/reject', requireAuth, requireAdmin, rejectPlace);
+router.post('/', requireAuth, submitSuggestion);
 
 module.exports = router;

@@ -47,4 +47,14 @@ describe('Auth flow (e2e)', () => {
     const res = await request(app).get('/api/auth/me');
     expect(res.status).toBe(401);
   });
+
+  it('geçerli token ile logout 204 döner', async () => {
+    const res = await request(app).post('/api/auth/logout').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(204);
+  });
+
+  it('token olmadan logout 401 döner', async () => {
+    const res = await request(app).post('/api/auth/logout');
+    expect(res.status).toBe(401);
+  });
 });

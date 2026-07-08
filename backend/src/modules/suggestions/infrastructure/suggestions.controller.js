@@ -1,5 +1,14 @@
 const { suggestionsService } = require('./suggestions.container');
 
+async function submitSuggestion(req, res, next) {
+  try {
+    const place = await suggestionsService.submit({ ...req.body, createdById: req.user.id });
+    res.status(201).json(place);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function listPendingPlaces(_req, res, next) {
   try {
     const places = await suggestionsService.listPending();
@@ -27,4 +36,4 @@ async function rejectPlace(req, res, next) {
   }
 }
 
-module.exports = { listPendingPlaces, approvePlace, rejectPlace };
+module.exports = { submitSuggestion, listPendingPlaces, approvePlace, rejectPlace };

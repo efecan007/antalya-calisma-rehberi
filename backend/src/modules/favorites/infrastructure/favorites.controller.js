@@ -2,7 +2,7 @@ const { favoritesService } = require('./favorites.container');
 
 async function addFavorite(req, res, next) {
   try {
-    await favoritesService.addFavorite({ userId: req.user.id, placeId: Number(req.params.id) });
+    await favoritesService.addFavorite({ userId: req.user.id, placeId: Number(req.params.placeId) });
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -11,7 +11,7 @@ async function addFavorite(req, res, next) {
 
 async function removeFavorite(req, res, next) {
   try {
-    await favoritesService.removeFavorite({ userId: req.user.id, placeId: Number(req.params.id) });
+    await favoritesService.removeFavorite({ userId: req.user.id, placeId: Number(req.params.placeId) });
     res.status(204).send();
   } catch (err) {
     next(err);

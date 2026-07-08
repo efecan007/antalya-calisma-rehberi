@@ -1,5 +1,5 @@
 /**
- * E2E test: mekan önerisi/onay akışı, listeleme, review ekleme ve yetkisiz erişim reddi.
+ * E2E test: admin-only mekan CRUD, review alt-kaynağı, yetkisiz erişim reddi.
  * Önkoşul: `docker compose up -d db redis` (veya tüm stack) ayakta olmalı.
  */
 const request = require('supertest');
@@ -45,16 +45,24 @@ afterAll(async () => {
   await getRedisClient().quit();
 });
 
-describe('Places + Reviews flow (e2e)', () => {
+describe('Places CRUD (e2e)', () => {
   it('giriş yapmadan mekan oluşturma 401 döner', async () => {
     const res = await request(app).post('/api/places').send({ name: 'x' });
     expect(res.status).toBe(401);
   });
 
-  it('kayıtlı kullanıcı mekan önerdiğinde PENDING olarak oluşur', async () => {
+  it('admin olmayan kullanıcı mekan oluşturamaz (403)', async () => {
     const res = await request(app)
       .post('/api/places')
       .set('Authorization', `Bearer ${userToken}`)
+      .send({ name: 'x', type: 'CAFE', region: 'MURATPASA', address: 'a', lat: 1, lng: 1 });
+    expect(res.status).toBe(403);
+  });
+
+  it('admin mekan oluşturunca doğrudan APPROVED olur', async () => {
+    const res = await request(app)
+      .post('/api/places')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({
         name: 'E2E Test Kafesi',
         type: 'CAFE',
@@ -66,45 +74,31 @@ describe('Places + Reviews flow (e2e)', () => {
       });
 
     expect(res.status).toBe(201);
-    expect(res.body.status).toBe('PENDING');
+    expect(res.body.status).toBe('APPROVED');
     placeId = res.body.id;
-  });
-
-  it('onaylanmamış mekan herkese açık listede görünmez', async () => {
-    const res = await request(app).get('/api/places').query({ region: 'MURATPASA' });
-    expect(res.status).toBe(200);
-    expect(res.body.some((p) => p.id === placeId)).toBe(false);
-  });
-
-  it('onaylanmamış mekanı öneren kullanıcı kendi detayını görebilir, başkası göremez', async () => {
-    const ownerRes = await request(app)
-      .get(`/api/places/${placeId}`)
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(ownerRes.status).toBe(200);
-
-    const anonRes = await request(app).get(`/api/places/${placeId}`);
-    expect(anonRes.status).toBe(404);
-  });
-
-  it('admin olmayan kullanıcı mekanı onaylayamaz', async () => {
-    const res = await request(app)
-      .post(`/api/places/${placeId}/approve`)
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(res.status).toBe(403);
-  });
-
-  it('admin mekanı onaylayınca herkese açık listede görünür', async () => {
-    const approveRes = await request(app)
-      .post(`/api/places/${placeId}/approve`)
-      .set('Authorization', `Bearer ${adminToken}`);
-    expect(approveRes.status).toBe(200);
-    expect(approveRes.body.status).toBe('APPROVED');
 
     const listRes = await request(app).get('/api/places').query({ region: 'MURATPASA' });
     expect(listRes.body.some((p) => p.id === placeId)).toBe(true);
   });
 
-  it('review eklenince ortalama puan güncellenir', async () => {
+  it('admin olmayan kullanıcı mekanı güncelleyemez (403)', async () => {
+    const res = await request(app)
+      .patch(`/api/places/${placeId}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ name: 'hack' });
+    expect(res.status).toBe(403);
+  });
+
+  it('admin PATCH ile mekanı günceller', async () => {
+    const res = await request(app)
+      .patch(`/api/places/${placeId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Güncellenmiş İsim' });
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('Güncellenmiş İsim');
+  });
+
+  it('review eklenince ortalama puan güncellenir ve GET .../reviews ile listelenir', async () => {
     const res = await request(app)
       .post(`/api/places/${placeId}/reviews`)
       .set('Authorization', `Bearer ${userToken}`)
@@ -123,36 +117,18 @@ describe('Places + Reviews flow (e2e)', () => {
     const detail = await request(app).get(`/api/places/${placeId}`);
     expect(detail.body.ratings.overallRating).toBe(5);
     expect(detail.body.ratings.reviewCount).toBe(1);
+
+    const reviewsRes = await request(app).get(`/api/places/${placeId}/reviews`);
+    expect(reviewsRes.status).toBe(200);
+    expect(reviewsRes.body).toHaveLength(1);
+    expect(reviewsRes.body[0].comment).toBe('E2E test yorumu');
   });
 
-  it('admin olmayan kullanıcı mekanı silemez', async () => {
+  it('admin olmayan kullanıcı mekanı silemez (403)', async () => {
     const deleteRes = await request(app)
       .delete(`/api/places/${placeId}`)
       .set('Authorization', `Bearer ${userToken}`);
     expect(deleteRes.status).toBe(403);
-  });
-
-  it('favori ekleme/çıkarma döngüsü çalışır', async () => {
-    const addRes = await request(app)
-      .post(`/api/places/${placeId}/favorite`)
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(addRes.status).toBe(204);
-
-    const listRes = await request(app)
-      .get('/api/favorites')
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(listRes.status).toBe(200);
-    expect(listRes.body.some((p) => p.id === placeId)).toBe(true);
-
-    const removeRes = await request(app)
-      .delete(`/api/places/${placeId}/favorite`)
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(removeRes.status).toBe(204);
-
-    const listAfterRes = await request(app)
-      .get('/api/favorites')
-      .set('Authorization', `Bearer ${userToken}`);
-    expect(listAfterRes.body.some((p) => p.id === placeId)).toBe(false);
   });
 
   it('admin mekanı siler', async () => {

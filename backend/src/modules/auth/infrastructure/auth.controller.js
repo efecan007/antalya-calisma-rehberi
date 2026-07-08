@@ -1,10 +1,8 @@
-const prisma = require('../../../database/prisma.client');
 const { hashPassword, comparePassword } = require('../../../common/security/password');
 const { signToken } = require('../../../common/security/jwt');
-const UsersRepository = require('../../users/infrastructure/users.repository');
+const { userRepository } = require('../../users/infrastructure/users.container');
 const AuthService = require('../application/auth.service');
 
-const userRepository = new UsersRepository(prisma);
 const authService = new AuthService({ userRepository, hashPassword, comparePassword, signToken });
 
 async function register(req, res, next) {
@@ -34,4 +32,10 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { register, login, me };
+// JWT stateless olduğu için sunucu tarafında iptal edilecek bir oturum yok;
+// bu endpoint yalnızca istemcinin token'ı bıraktığını doğrulamak için var.
+function logout(_req, res) {
+  res.status(204).send();
+}
+
+module.exports = { register, login, me, logout };

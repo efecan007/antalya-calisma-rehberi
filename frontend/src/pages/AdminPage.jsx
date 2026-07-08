@@ -1,24 +1,40 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { regionLabel, typeLabel } from '../constants';
 
+const STAT_LABELS = {
+  totalUsers: 'Kullanıcı',
+  totalPlaces: 'Onaylı Mekan',
+  pendingSuggestions: 'Bekleyen Öneri',
+  totalReviews: 'Yorum',
+  totalFavorites: 'Favori',
+};
+
 export default function AdminPage() {
+  const { user: currentUser } = useAuth();
+  const [stats, setStats] = useState(null);
   const [pendingPlaces, setPendingPlaces] = useState([]);
   const [places, setPlaces] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
     setLoading(true);
-    const [placesRes, pendingRes, reviewsRes] = await Promise.all([
+    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes] = await Promise.all([
+      apiClient.get('/admin/dashboard'),
       apiClient.get('/places'),
-      apiClient.get('/places/pending'),
+      apiClient.get('/admin/suggestions'),
       apiClient.get('/reviews'),
+      apiClient.get('/admin/users'),
     ]);
+    setStats(statsRes.data);
     setPlaces(placesRes.data);
     setPendingPlaces(pendingRes.data);
     setReviews(reviewsRes.data);
+    setUsers(usersRes.data);
     setLoading(false);
   }
 
@@ -27,12 +43,12 @@ export default function AdminPage() {
   }, []);
 
   async function approve(id) {
-    await apiClient.post(`/places/${id}/approve`);
+    await apiClient.patch(`/admin/suggestions/${id}/approve`);
     loadAll();
   }
 
   async function reject(id) {
-    await apiClient.post(`/places/${id}/reject`);
+    await apiClient.patch(`/admin/suggestions/${id}/reject`);
     loadAll();
   }
 
@@ -44,6 +60,12 @@ export default function AdminPage() {
 
   async function deleteReview(id) {
     await apiClient.delete(`/reviews/${id}`);
+    loadAll();
+  }
+
+  async function deleteUser(id) {
+    if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
+    await apiClient.delete(`/admin/users/${id}`);
     loadAll();
   }
 
@@ -60,6 +82,17 @@ export default function AdminPage() {
           + Yeni Mekan Ekle
         </Link>
       </div>
+
+      {stats && (
+        <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {Object.entries(STAT_LABELS).map(([key, label]) => (
+            <div key={key} className="border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-2xl font-semibold text-gray-900">{stats[key]}</p>
+              <p className="text-xs text-gray-500">{label}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <section>
         <h2 className="font-medium text-gray-900 mb-3">Bekleyen Mekanlar ({pendingPlaces.length})</h2>
@@ -143,6 +176,31 @@ export default function AdminPage() {
               >
                 Sil
               </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="font-medium text-gray-900 mb-3">Kullanıcılar ({users.length})</h2>
+        <div className="space-y-2">
+          {users.map((u) => (
+            <div key={u.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-900">
+                  <span className="font-medium">{u.name}</span>{' '}
+                  <span className="text-xs bg-gray-100 rounded px-1.5 py-0.5 ml-1">{u.role}</span>
+                </p>
+                <p className="text-xs text-gray-500">{u.email}</p>
+              </div>
+              {u.id !== currentUser?.id && (
+                <button
+                  onClick={() => deleteUser(u.id)}
+                  className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -14,7 +14,7 @@ function validRatings(overrides = {}) {
   };
 }
 
-function buildDeps({ placeExists = true, existingReview = null, findByIdResult } = {}) {
+function buildDeps({ placeExists = true, existingReview = null, findByIdResult, reviewsForPlace = [] } = {}) {
   const created = [];
   const deleted = [];
   return {
@@ -24,6 +24,9 @@ function buildDeps({ placeExists = true, existingReview = null, findByIdResult }
       },
       async findById() {
         return findByIdResult !== undefined ? findByIdResult : existingReview;
+      },
+      async findByPlace() {
+        return reviewsForPlace;
       },
       async create(data) {
         created.push(data);
@@ -46,6 +49,20 @@ function buildDeps({ placeExists = true, existingReview = null, findByIdResult }
     deleted,
   };
 }
+
+describe('ReviewsService.listByPlace', () => {
+  it('mekan yoksa NotFoundError fırlatır', async () => {
+    const service = new ReviewsService(buildDeps({ placeExists: false }));
+    await expect(service.listByPlace({ placeId: 1 })).rejects.toThrow(NotFoundError);
+  });
+
+  it('mekana ait yorumları döner', async () => {
+    const reviewsForPlace = [{ id: 1 }, { id: 2 }];
+    const service = new ReviewsService(buildDeps({ reviewsForPlace }));
+    const result = await service.listByPlace({ placeId: 1 });
+    expect(result).toEqual(reviewsForPlace);
+  });
+});
 
 describe('ReviewsService.createReview', () => {
   it('mekan yoksa NotFoundError fırlatır', async () => {

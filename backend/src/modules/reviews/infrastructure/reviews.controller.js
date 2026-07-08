@@ -15,6 +15,15 @@ async function createReview(req, res, next) {
   }
 }
 
+async function listReviews(req, res, next) {
+  try {
+    const reviews = await reviewsService.listByPlace({ placeId: Number(req.params.id) });
+    res.json(reviews);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function updateReview(req, res, next) {
   try {
     const updated = await reviewsService.updateReview({
@@ -42,4 +51,4 @@ async function deleteReview(req, res, next) {
   }
 }
 
-module.exports = { createReview, updateReview, deleteReview };
+module.exports = { createReview, listReviews, updateReview, deleteReview };

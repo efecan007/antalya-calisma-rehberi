@@ -27,9 +27,9 @@ export function FavoritesProvider({ children }) {
   async function toggleFavorite(placeId) {
     if (!user) return;
     if (favoriteIds.has(placeId)) {
-      await apiClient.delete(`/places/${placeId}/favorite`);
+      await apiClient.delete(`/favorites/${placeId}`);
     } else {
-      await apiClient.post(`/places/${placeId}/favorite`);
+      await apiClient.post(`/favorites/${placeId}`);
     }
     await refresh();
   }

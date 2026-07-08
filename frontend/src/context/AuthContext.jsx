@@ -40,7 +40,13 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (err) {
+      // JWT stateless olduğu için bu çağrı yalnızca API sözleşmesini tamamlar;
+      // başarısız olsa da istemci token'ı yine de bırakır.
+    }
     localStorage.removeItem('wfh_token');
     setUser(null);
   }

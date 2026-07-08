@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { updateReview, deleteReview } = require('./reviews.controller');
 const { requireAuth } = require('../../../common/guards/auth.guard');
-const adminReviewsRoutes = require('../../admin/infrastructure/admin.routes');
+const adminReviewsRoutes = require('../../admin/infrastructure/admin.reviews.routes');
 
 const router = Router();
 

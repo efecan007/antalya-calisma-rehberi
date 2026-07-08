@@ -135,17 +135,33 @@ npm run dev
 Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite proxy üzerinden backend'e (http://localhost:4000) yönlendirir.
 
 ## API Uç Noktaları
+
+**Auth**
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
-- `GET /api/regions`
+- `POST /api/auth/logout` (JWT gerekli) — JWT stateless olduğu için sunucuda iptal edilecek bir oturum yok; istemcinin token'ı bıraktığını doğrulayan `204` döner.
+
+**Places**
 - `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `minInternetSpeed`, `outletLevel`, `noiseLevel`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
 - `GET /api/places/:id` — onaylı mekan herkese açık; `PENDING`/`REJECTED` mekan yalnızca sahibi veya admin tarafından görülebilir
-- `POST /api/places` (JWT gerekli) — admin doğrudan yayınlar (`APPROVED`), normal kullanıcı öneri gönderir (`PENDING`)
-- `PUT /api/places/:id`, `DELETE /api/places/:id` (yalnızca admin)
-- `GET /api/places/pending`, `POST /api/places/:id/approve`, `POST /api/places/:id/reject` (yalnızca admin)
-- `POST /api/places/:id/reviews` (JWT gerekli)
+- `POST /api/places`, `PATCH /api/places/:id`, `DELETE /api/places/:id` (yalnızca admin) — admin'in doğrudan eklediği mekan `APPROVED` olur
+- `GET /api/regions`
+
+**Reviews**
+- `POST /api/places/:id/reviews` (JWT gerekli), `GET /api/places/:id/reviews`
 - `PUT /api/reviews/:id` (JWT gerekli, sadece sahibi), `DELETE /api/reviews/:id` (sahibi veya admin)
+
+**Favorites**
+- `POST /api/favorites/:placeId`, `DELETE /api/favorites/:placeId` (JWT gerekli)
+- `GET /api/favorites` (JWT gerekli)
+
+**Suggestions**
+- `POST /api/suggestions` (JWT gerekli) — kim gönderirse göndersin her zaman `PENDING` oluşturur
+- `GET /api/admin/suggestions`, `PATCH /api/admin/suggestions/:id/approve`, `PATCH /api/admin/suggestions/:id/reject` (yalnızca admin)
+
+**Admin**
+- `GET /api/admin/dashboard` — kullanıcı/mekan/bekleyen öneri/yorum/favori sayıları
+- `GET /api/admin/users`, `DELETE /api/admin/users/:id` (kendi hesabını silemez)
 - `GET /api/reviews` (yalnızca admin, moderasyon için tüm yorumlar)
-- `POST /api/places/:id/favorite`, `DELETE /api/places/:id/favorite`, `GET /api/favorites` (JWT gerekli)
 
 ## Future Improvements
 

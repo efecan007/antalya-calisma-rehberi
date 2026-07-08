@@ -21,6 +21,15 @@ class UsersRepository extends UserRepository {
     const record = await this.prisma.user.create({ data: { email, passwordHash, name } });
     return new User(record);
   }
+
+  async findAll() {
+    const records = await this.prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+    return records.map((record) => new User(record));
+  }
+
+  async delete(id) {
+    await this.prisma.user.delete({ where: { id } });
+  }
 }
 
 module.exports = UsersRepository;

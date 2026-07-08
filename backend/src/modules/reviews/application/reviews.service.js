@@ -9,6 +9,14 @@ class ReviewsService {
     this.cache = cache;
   }
 
+  async listByPlace({ placeId }) {
+    const place = await this.placeRepository.findById(placeId);
+    if (!place) {
+      throw new NotFoundError('Mekan bulunamadı');
+    }
+    return this.reviewRepository.findByPlace(placeId);
+  }
+
   async createReview({ placeId, userId, ratings, comment }) {
     const place = await this.placeRepository.findById(placeId);
     if (!place) {

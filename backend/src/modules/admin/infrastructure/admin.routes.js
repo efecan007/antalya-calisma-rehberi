@@ -1,13 +1,15 @@
-/**
- * Admin'e özel yorum moderasyonu; `GET /api/reviews` altında yaşadığı için
- * reviews.routes.js tarafından mount edilir.
- */
 const { Router } = require('express');
-const { listAllReviews } = require('./admin.controller');
+const { getDashboard, listUsers, deleteUser } = require('./admin.controller');
 const { requireAuth, requireAdmin } = require('../../../common/guards/auth.guard');
+const suggestionsAdminRoutes = require('../../suggestions/infrastructure/suggestions.admin.routes');
 
 const router = Router();
 
-router.get('/', requireAuth, requireAdmin, listAllReviews);
+router.use(requireAuth, requireAdmin);
+
+router.get('/dashboard', getDashboard);
+router.get('/users', listUsers);
+router.delete('/users/:id', deleteUser);
+router.use('/suggestions', suggestionsAdminRoutes);
 
 module.exports = router;

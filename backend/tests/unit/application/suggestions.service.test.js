@@ -67,3 +67,17 @@ describe('SuggestionsService.listPending', () => {
     expect(result[0].status).toBe('PENDING');
   });
 });
+
+describe('SuggestionsService.submit', () => {
+  it('placesService.createPlace çağırır ve requesterRole her zaman USER olarak zorlanır', async () => {
+    const createPlace = jest.fn().mockResolvedValue({ id: 1, status: 'PENDING' });
+    const deps = { ...buildDeps(null), placesService: { createPlace } };
+    const service = new SuggestionsService(deps);
+
+    await service.submit({ createdById: 5, requesterRole: 'ADMIN', name: 'Test Mekan' });
+
+    expect(createPlace).toHaveBeenCalledWith(
+      expect.objectContaining({ createdById: 5, requesterRole: 'USER', name: 'Test Mekan' })
+    );
+  });
+});

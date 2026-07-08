@@ -77,14 +77,15 @@ export default function AddPlacePage() {
         .map((url) => url.trim())
         .filter(Boolean);
       if (isEdit) {
-        await apiClient.put(`/places/${id}`, { ...rest, photoUrls });
+        await apiClient.patch(`/places/${id}`, { ...rest, photoUrls });
         navigate(`/mekan/${id}`);
         return;
       }
-      const { data } = await apiClient.post('/places', { ...rest, photoUrls });
       if (isAdmin) {
+        const { data } = await apiClient.post('/places', { ...rest, photoUrls });
         navigate(`/mekan/${data.id}`);
       } else {
+        await apiClient.post('/suggestions', { ...rest, photoUrls });
         setSuggested(true);
       }
     } catch (err) {

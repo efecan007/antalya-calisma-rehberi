@@ -14,6 +14,14 @@ class UserRepository {
   async create(_userData) {
     throw new Error('Not implemented');
   }
+
+  async findAll() {
+    throw new Error('Not implemented');
+  }
+
+  async delete(_id) {
+    throw new Error('Not implemented');
+  }
 }
 
 module.exports = UserRepository;

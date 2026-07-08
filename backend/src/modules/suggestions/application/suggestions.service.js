@@ -1,9 +1,20 @@
 const { NotFoundError } = require('../../../common/errors');
 
 class SuggestionsService {
-  constructor({ placeRepository, cache }) {
+  constructor({ placeRepository, cache, placesService }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
+    this.placesService = placesService;
+  }
+
+  async submit({ createdById, ...placeData }) {
+    // Bir öneri her zaman PENDING olarak oluşturulur; kim gönderirse göndersin
+    // (admin dahil), bu uç nokta yayına almaz, yalnızca onay kuyruğuna ekler.
+    return this.placesService.createPlace({
+      ...placeData,
+      createdById,
+      requesterRole: 'USER',
+    });
   }
 
   async listPending() {
