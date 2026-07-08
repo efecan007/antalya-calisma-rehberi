@@ -32,7 +32,7 @@ backend/src/
     ├── suggestions/            mekan önerisi onay/red akışı — suggestions.service.js
     ├── reviews/                yorum + puan — reviews.service.js
     ├── favorites/              favori ekle/çıkar/listele — favorites.service.js
-    ├── admin/                  yorum moderasyonu (tüm yorumları listeleme) — admin.service.js
+    ├── admin/                  dashboard istatistikleri, kullanıcı yönetimi, yorum moderasyonu — admin.service.js
     └── cache/                  Redis client + cache-aside helper — cache.service.js
 ```
 
@@ -40,7 +40,7 @@ Her modülün `infrastructure/` klasöründe bir `*.controller.js` (HTTP handler
 
 - **Domain katmanı** (`domain/` alt klasörleri) hiçbir framework'e (Express, Prisma) bağımlı değildir; yalnızca entity'ler, value object'ler (ör. `Rating` 1-5 aralığını kendi kendine doğrular) ve **Repository Pattern** ile tanımlanmış port'lar (arayüzler) içerir.
 - **Service katmanı** yalnızca repository *port*'larına bağımlıdır — bu sayede DB olmadan, sahte (in-memory) repository'lerle unit test edilebilir.
-- **Modüller arası bağımlılık**: bazı endpoint'ler birden fazla modülün sorumluluğunu birleştirir (ör. `POST /api/places/:id/reviews` places altında yaşar ama reviews modülünün controller'ını kullanır; `GET /api/places/pending` ve `/:id/approve|reject` suggestions modülünden `places.routes.js`'e mount edilir; `GET /api/reviews` admin modülünden `reviews.routes.js`'e mount edilir). Bu, dış API sözleşmesini (URL yapısını) değiştirmeden modülleri ayırmayı sağlar.
+- **Modüller arası bağımlılık**: bazı endpoint'ler birden fazla modülün sorumluluğunu birleştirir (ör. `POST /api/places/:id/reviews` places altında yaşar ama reviews modülünün controller'ını kullanır; `POST /api/favorites/:placeId` favorites modülünden `places.container.js`'teki paylaşılan repository'yi kullanır; `GET /api/reviews` admin modülünden `reviews.routes.js`'e mount edilir; `GET/PATCH /api/admin/suggestions/...` suggestions modülünden `admin.routes.js`'e mount edilir). Suggestions modülü, öneri gönderme (`POST /api/suggestions`) ile admin onay/red akışını (`/api/admin/suggestions/...`) ayrı route dosyalarında tutar ama aynı `suggestions.service.js`'i paylaşır. Bu ayrım, dış API sözleşmesini modüllerin kendi sorumluluğuna göre net tutar.
 - **Redis cache** (`modules/cache/`): `GET /api/places` ve `GET /api/places/:id` sonuçları cache-aside deseniyle 60 saniye cache'lenir; bir mekan/yorum oluşturulduğunda, güncellendiğinde veya silindiğinde ilgili cache anahtarları invalide edilir. Redis'e erişilemezse sistem cache'siz (doğrudan DB'den) çalışmaya devam eder — cache bir "nice-to-have"dir, kritik yol değildir.
 
 ### Neden Microservices Seçilmedi?
@@ -251,6 +251,26 @@ Bu sistemde **"Her istek doğrulanmadan güvenilir kabul edilmez."** ilkesi uygu
 - Rol kontrolü (`requireAdmin`) route seviyesinde *ve* servis metodunda tekrar yapılır; bir kullanıcının admin olup olmadığı her admin işleminde yeniden sorgulanır, tek bir yerde "zaten admin" varsayımıyla geçilmez.
 - Mekan görünürlüğü (`PlacesService.getPlace`) Redis cache'ten dönen sonuç için bile her çağrıda yeniden değerlendirilir — önbellekte `PENDING`/`REJECTED` bir mekan bulunsa dahi, isteği yapanın sahibi veya admin olduğu her seferinde yeniden kontrol edilir; cache hit'i yetki kontrolünü asla atlamaz.
 - Sahiplik/yetki kontrolleri (yorum silme, favori işlemleri) her zaman sunucu tarafında, istemciden gelen `userId` yerine JWT'den çözülen kimliğe göre yapılır — istemcinin "ben buyum" demesi yeterli değildir.
+
+## GitHub'a Yükleme
+
+Bu proje zaten Git ile versiyonlanmıştır ve bir GitHub deposuna bağlıdır. Sıfırdan bir kopyasını kendi GitHub hesabınıza yüklemek isterseniz:
+
+```bash
+# 1) Depo zaten klonlanmışsa bu adımı atlayın; değilse:
+git init
+git add .
+git commit -m "chore(github): initialize repository structure"
+
+# 2) GitHub'da boş bir repo oluşturun (README/.gitignore/license EKLEMEDEN,
+#    github.com/new üzerinden), sonra o repoyu remote olarak ekleyin:
+git remote add origin https://github.com/<kullanici-adi>/<repo-adi>.git
+
+# 3) İlk push (varsayılan branch main değilse önce `git branch -M main`):
+git push -u origin main
+```
+
+Sonraki her değişiklik için normal akış: `git add <dosyalar>` → yukarıdaki [Conventional Commit formatına](#git-ve-commit-kuralları) uygun bir mesajla `git commit` (kök dizinde `npm install` çalıştırıldıysa `commit-msg` hook'u formatı otomatik doğrular) → `git push origin main`.
 
 ## Git ve Commit Kuralları
 
