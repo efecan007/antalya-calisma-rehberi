@@ -1,6 +1,9 @@
 const { Router } = require('express');
 const {
   listPlaces,
+  popularPlaces,
+  topRatedPlaces,
+  recommendations,
   getPlace,
   createPlace,
   updatePlace,
@@ -10,6 +13,12 @@ const { requireAuth, requireAdmin, optionalAuth } = require('../../../common/gua
 const { createReview, listReviews } = require('../../reviews/infrastructure/reviews.controller');
 
 const router = Router();
+
+// Sabit path'ler (/popular, /top-rated, /recommendations) `/:id` route'undan
+// önce tanımlanmalı, aksi halde Express bunları :id parametresi sanır.
+router.get('/popular', popularPlaces);
+router.get('/top-rated', topRatedPlaces);
+router.get('/recommendations', recommendations);
 
 router.get('/', listPlaces);
 router.get('/:id', optionalAuth, getPlace);

@@ -1,4 +1,5 @@
 const { NotFoundError } = require('../../../common/errors');
+const { invalidatePlaceListCaches, invalidatePlaceDetailCache } = require('../../cache/place-cache-keys');
 
 class SuggestionsService {
   constructor({ placeRepository, cache, placesService }) {
@@ -30,10 +31,8 @@ class SuggestionsService {
 
     const updated = await this.placeRepository.update(id, { status: 'APPROVED' });
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${id}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, id);
+    await invalidatePlaceListCaches(this.cache);
 
     return updated.toJSON();
   }
@@ -46,10 +45,8 @@ class SuggestionsService {
 
     const updated = await this.placeRepository.update(id, { status: 'REJECTED' });
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${id}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, id);
+    await invalidatePlaceListCaches(this.cache);
 
     return updated.toJSON();
   }

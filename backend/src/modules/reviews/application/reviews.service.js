@@ -1,6 +1,7 @@
 const Rating = require('../domain/Rating');
 const Review = require('../domain/Review');
 const { NotFoundError, ConflictError, ForbiddenError } = require('../../../common/errors');
+const { invalidatePlaceListCaches, invalidatePlaceDetailCache } = require('../../cache/place-cache-keys');
 
 class ReviewsService {
   constructor({ reviewRepository, placeRepository, cache }) {
@@ -40,10 +41,8 @@ class ReviewsService {
       comment,
     });
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${placeId}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, placeId);
+    await invalidatePlaceListCaches(this.cache);
 
     return review;
   }
@@ -69,10 +68,8 @@ class ReviewsService {
       comment,
     });
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${review.placeId}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, review.placeId);
+    await invalidatePlaceListCaches(this.cache);
 
     return updated;
   }
@@ -88,10 +85,8 @@ class ReviewsService {
 
     await this.reviewRepository.delete(reviewId);
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${review.placeId}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, review.placeId);
+    await invalidatePlaceListCaches(this.cache);
   }
 }
 

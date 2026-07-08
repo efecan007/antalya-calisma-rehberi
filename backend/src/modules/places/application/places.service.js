@@ -2,9 +2,16 @@ const { NotFoundError, ForbiddenError, ValidationError } = require('../../../com
 const PlaceType = require('../domain/PlaceType');
 const Region = require('../domain/Region');
 const LevelRating = require('../domain/LevelRating');
+const { invalidatePlaceListCaches, invalidatePlaceDetailCache } = require('../../cache/place-cache-keys');
 
 const LIST_CACHE_TTL_SECONDS = 60;
 const DETAIL_CACHE_TTL_SECONDS = 60;
+const POPULAR_CACHE_TTL_SECONDS = 120;
+const TOP_RATED_CACHE_TTL_SECONDS = 120;
+const RECOMMENDATIONS_CACHE_TTL_SECONDS = 120;
+const DEFAULT_POPULAR_LIMIT = 10;
+const DEFAULT_TOP_RATED_LIMIT = 10;
+const DEFAULT_RECOMMENDATIONS_LIMIT = 6;
 
 const SORTABLE_FIELDS = new Set([
   'internetSpeed',
@@ -85,6 +92,62 @@ class PlacesService {
 
     if (!this.cache) return fetch();
     return this.cache.getOrSet(cacheKey, LIST_CACHE_TTL_SECONDS, fetch);
+  }
+
+  async getPopularPlaces({ limit = DEFAULT_POPULAR_LIMIT } = {}) {
+    const cacheKey = `places:popular:${limit}`;
+    const fetch = async () => {
+      const places = await this.placeRepository.findPopular(limit);
+      return places.map((place) => place.toJSON());
+    };
+
+    if (!this.cache) return fetch();
+    return this.cache.getOrSet(cacheKey, POPULAR_CACHE_TTL_SECONDS, fetch);
+  }
+
+  async getTopRatedPlaces({ limit = DEFAULT_TOP_RATED_LIMIT } = {}) {
+    const cacheKey = `places:top-rated:${limit}`;
+    const fetch = async () => {
+      const places = await this.placeRepository.findMany({ status: 'APPROVED' });
+      const serialized = places.map((place) => place.toJSON());
+      return this._sortByRatingDesc(serialized).slice(0, limit);
+    };
+
+    if (!this.cache) return fetch();
+    return this.cache.getOrSet(cacheKey, TOP_RATED_CACHE_TTL_SECONDS, fetch);
+  }
+
+  async getRecommendations({ limit = DEFAULT_RECOMMENDATIONS_LIMIT } = {}) {
+    // Ana sayfa önerileri: en az bir yorumu olan, en yüksek puanlı mekanlar.
+    // Yeterli yorumlanmış mekan yoksa en yeni onaylı mekanlarla tamamlanır.
+    const cacheKey = `places:recommendations:${limit}`;
+    const fetch = async () => {
+      const places = await this.placeRepository.findMany({ status: 'APPROVED' });
+      const serialized = places.map((place) => place.toJSON());
+
+      const reviewed = this._sortByRatingDesc(serialized.filter((p) => p.ratings.reviewCount > 0));
+      if (reviewed.length >= limit) return reviewed.slice(0, limit);
+
+      const unreviewed = serialized
+        .filter((p) => p.ratings.reviewCount === 0)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      return [...reviewed, ...unreviewed].slice(0, limit);
+    };
+
+    if (!this.cache) return fetch();
+    return this.cache.getOrSet(cacheKey, RECOMMENDATIONS_CACHE_TTL_SECONDS, fetch);
+  }
+
+  _sortByRatingDesc(serializedPlaces) {
+    return [...serializedPlaces].sort((a, b) => {
+      const aVal = a.ratings.overallRating;
+      const bVal = b.ratings.overallRating;
+      if (aVal === null && bVal === null) return 0;
+      if (aVal === null) return 1;
+      if (bVal === null) return -1;
+      return bVal - aVal;
+    });
   }
 
   async getPlace({ id, requesterId, requesterRole }) {
@@ -168,9 +231,7 @@ class PlacesService {
       createdById,
     });
 
-    if (this.cache) {
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceListCaches(this.cache);
 
     return place.toJSON();
   }
@@ -214,10 +275,8 @@ class PlacesService {
 
     const updated = await this.placeRepository.update(id, data);
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${id}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, id);
+    await invalidatePlaceListCaches(this.cache);
 
     return updated.toJSON();
   }
@@ -233,10 +292,8 @@ class PlacesService {
 
     await this.placeRepository.delete(id);
 
-    if (this.cache) {
-      await this.cache.del(`places:detail:${id}`);
-      await this.cache.invalidate('places:list:*');
-    }
+    await invalidatePlaceDetailCache(this.cache, id);
+    await invalidatePlaceListCaches(this.cache);
   }
 }
 

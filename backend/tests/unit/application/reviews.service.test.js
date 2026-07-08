@@ -102,6 +102,8 @@ describe('ReviewsService.createReview', () => {
     expect(review.placeId).toBe(5);
     expect(deps.cache.del).toHaveBeenCalledWith('places:detail:5');
     expect(deps.cache.invalidate).toHaveBeenCalledWith('places:list:*');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:top-rated:*');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:recommendations:*');
   });
 });
 

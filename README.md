@@ -142,6 +142,9 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 
 **Places**
 - `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `minInternetSpeed`, `outletLevel`, `noiseLevel`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
+- `GET /api/places/popular` (query: `limit`, varsayılan 10) — favori sayısına göre en popüler mekanlar
+- `GET /api/places/top-rated` (query: `limit`, varsayılan 10) — ortalama puana göre en yüksek puanlı mekanlar
+- `GET /api/places/recommendations` (query: `limit`, varsayılan 6) — ana sayfa önerileri
 - `GET /api/places/:id` — onaylı mekan herkese açık; `PENDING`/`REJECTED` mekan yalnızca sahibi veya admin tarafından görülebilir
 - `POST /api/places`, `PATCH /api/places/:id`, `DELETE /api/places/:id` (yalnızca admin) — admin'in doğrudan eklediği mekan `APPROVED` olur
 - `GET /api/regions`
@@ -162,6 +165,24 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 - `GET /api/admin/dashboard` — kullanıcı/mekan/bekleyen öneri/yorum/favori sayıları
 - `GET /api/admin/users`, `DELETE /api/admin/users/:id` (kendi hesabını silemez)
 - `GET /api/reviews` (yalnızca admin, moderasyon için tüm yorumlar)
+
+## Redis Cache Stratejisi
+
+Tüm cache-aside mantığı `modules/cache/cache.service.js`'teki `getOrSet`/`invalidate`/`del` yardımcıları üzerinden yürür; Redis'e erişilemezse sistem hatasız şekilde doğrudan DB'ye düşer (cache bir "nice-to-have"dir, kritik yol değildir).
+
+| Anahtar deseni | Ne için | TTL | Doldurulduğu yer |
+|---|---|---|---|
+| `places:list:{filters}` | Bölgeye/türe/fiyata/puana göre filtrelenmiş mekan listeleri (bölgeye göre listeleme dahil — `region` filtresi de bu anahtarın parçasıdır) | 60 sn | `PlacesService.listPlaces` |
+| `places:detail:{id}` | Tek bir mekanın detayı | 60 sn | `PlacesService.getPlace` |
+| `places:popular:{limit}` | Favori sayısına göre en popüler mekanlar | 120 sn | `PlacesService.getPopularPlaces` |
+| `places:top-rated:{limit}` | Ortalama puana göre en yüksek puanlı mekanlar | 120 sn | `PlacesService.getTopRatedPlaces` |
+| `places:recommendations:{limit}` | Ana sayfa önerileri (yorumlanmış + en yüksek puanlı, yetersizse en yeni mekanlarla tamamlanır) | 120 sn | `PlacesService.getRecommendations` |
+
+**Cache temizleme (invalidation):** Anahtar desenleri tek doğruluk kaynağı olarak `modules/cache/place-cache-keys.js`'te toplanır (`invalidatePlaceListCaches`, `invalidatePlaceDetailCache`, `invalidatePopularCache`) — böylece yeni bir mutasyon noktası eklendiğinde hangi cache'lerin temizleneceği tek yerden yönetilir:
+
+- **Bir mekan oluşturulduğunda/güncellendiğinde/silindiğinde** (`PlacesService`, admin onay/red akışı `SuggestionsService`): `places:list:*`, `places:popular:*`, `places:top-rated:*`, `places:recommendations:*` invalide edilir; güncelleme/silmede ayrıca o mekanın `places:detail:{id}` anahtarı da silinir.
+- **Bir review oluşturulduğunda/güncellendiğinde/silindiğinde** (`ReviewsService`): puan ortalaması değiştiği için aynı liste/detay/top-rated/recommendations anahtarları invalide edilir.
+- **Bir favori eklendiğinde/çıkarıldığında** (`FavoritesService`): yalnızca popülerlik sıralaması etkilendiği için sadece `places:popular:*` invalide edilir — diğer cache'lere dokunulmaz.
 
 ## Güvenlik
 

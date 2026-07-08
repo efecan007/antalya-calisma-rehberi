@@ -33,23 +33,28 @@ describe('FavoritesService.addFavorite', () => {
     await expect(service.addFavorite({ userId: 1, placeId: 1 })).rejects.toThrow(NotFoundError);
   });
 
-  it('onaylı mekan favorilere eklenir', async () => {
+  it('onaylı mekan favorilere eklenir ve popüler cache invalidate edilir', async () => {
     const add = jest.fn();
+    const cache = { invalidate: jest.fn() };
     const service = new FavoritesService({
       favoriteRepository: { add },
       placeRepository: { async findById() { return makePlace(1); } },
+      cache,
     });
     await service.addFavorite({ userId: 1, placeId: 1 });
     expect(add).toHaveBeenCalledWith(1, 1);
+    expect(cache.invalidate).toHaveBeenCalledWith('places:popular:*');
   });
 });
 
 describe('FavoritesService.removeFavorite', () => {
-  it('favoriden çıkarır', async () => {
+  it('favoriden çıkarır ve popüler cache invalidate edilir', async () => {
     const remove = jest.fn();
-    const service = new FavoritesService({ favoriteRepository: { remove } });
+    const cache = { invalidate: jest.fn() };
+    const service = new FavoritesService({ favoriteRepository: { remove }, cache });
     await service.removeFavorite({ userId: 1, placeId: 1 });
     expect(remove).toHaveBeenCalledWith(1, 1);
+    expect(cache.invalidate).toHaveBeenCalledWith('places:popular:*');
   });
 });
 

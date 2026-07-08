@@ -28,13 +28,16 @@ function makePlace(id, internetSpeed, overrides = {}) {
   });
 }
 
-function buildDeps({ places = [], findByIdResult, updateResult } = {}) {
+function buildDeps({ places = [], findByIdResult, updateResult, popularPlaces = [] } = {}) {
   return {
     placeRepository: {
       lastFilters: null,
       async findMany(filters) {
         this.lastFilters = filters;
         return places;
+      },
+      async findPopular(limit) {
+        return popularPlaces.slice(0, limit);
       },
       async findById() {
         return findByIdResult !== undefined ? findByIdResult : places[0] ?? null;
@@ -174,6 +177,67 @@ describe('PlacesService.listPlaces', () => {
     await service.listPlaces({ outletLevel: 'HIGH', noiseLevel: 'LOW' });
     expect(deps.placeRepository.lastFilters.outletLevel).toBe('HIGH');
     expect(deps.placeRepository.lastFilters.noiseLevel).toBe('LOW');
+  });
+});
+
+describe('PlacesService.getPopularPlaces', () => {
+  it('repository.findPopular sonucunu serialize edip döner', async () => {
+    const popularPlaces = [makePlace(1, 5), makePlace(2, 3)];
+    const service = new PlacesService(buildDeps({ popularPlaces }));
+    const result = await service.getPopularPlaces({ limit: 10 });
+    expect(result.map((p) => p.id)).toEqual([1, 2]);
+  });
+});
+
+describe('PlacesService.getTopRatedPlaces', () => {
+  it('en yüksek puanlıdan düşüğe sıralar ve limit uygular', async () => {
+    const places = [makePlace(1, 2), makePlace(2, 5), makePlace(3, 4)];
+    const service = new PlacesService(buildDeps({ places }));
+    const result = await service.getTopRatedPlaces({ limit: 2 });
+    expect(result.map((p) => p.id)).toEqual([2, 3]);
+  });
+});
+
+describe('PlacesService.getRecommendations', () => {
+  it('yorumu olan mekanları puana göre öncelikli döner', async () => {
+    const reviewed = [makePlace(1, 3), makePlace(2, 5)];
+    const unreviewed = new Place({
+      id: 3,
+      name: 'Yeni Mekan',
+      type: 'CAFE',
+      region: 'MURATPASA',
+      address: 'Adres',
+      lat: 0,
+      lng: 0,
+      priceLevel: 2,
+      status: 'APPROVED',
+      createdAt: new Date(),
+      reviews: [],
+    });
+    const service = new PlacesService(buildDeps({ places: [...reviewed, unreviewed] }));
+    const result = await service.getRecommendations({ limit: 3 });
+    expect(result.map((p) => p.id)).toEqual([2, 1, 3]);
+  });
+});
+
+describe('PlacesService cache invalidation', () => {
+  it('createPlace liste/popüler/top-rated/recommendations cache\'lerini invalidate eder', async () => {
+    const deps = buildDeps();
+    const service = new PlacesService(deps);
+    await service.createPlace(validInput({ createdById: 1, requesterRole: 'ADMIN' }));
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:list:*');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:popular:*');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:top-rated:*');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:recommendations:*');
+  });
+
+  it('updatePlace detay ve liste cache\'lerini invalidate eder', async () => {
+    const place = makePlace(1, 4);
+    const deps = buildDeps({ findByIdResult: place });
+    const service = new PlacesService(deps);
+    await service.updatePlace({ id: 1, requesterRole: 'ADMIN', changes: { name: 'Yeni' } });
+    expect(deps.cache.del).toHaveBeenCalledWith('places:detail:1');
+    expect(deps.cache.invalidate).toHaveBeenCalledWith('places:top-rated:*');
   });
 });
 

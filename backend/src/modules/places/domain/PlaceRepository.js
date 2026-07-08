@@ -3,6 +3,10 @@ class PlaceRepository {
     throw new Error('Not implemented');
   }
 
+  async findPopular(_limit) {
+    throw new Error('Not implemented');
+  }
+
   async findById(_id) {
     throw new Error('Not implemented');
   }

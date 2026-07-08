@@ -35,6 +35,16 @@ class PlacesRepository extends PlaceRepository {
     return records.map(toEntity);
   }
 
+  async findPopular(limit) {
+    const records = await this.prisma.place.findMany({
+      where: { status: 'APPROVED' },
+      include: { reviews: true },
+      orderBy: { favorites: { _count: 'desc' } },
+      take: limit,
+    });
+    return records.map(toEntity);
+  }
+
   async findById(id) {
     const record = await this.prisma.place.findUnique({
       where: { id },
