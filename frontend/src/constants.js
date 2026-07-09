@@ -46,6 +46,8 @@ export const SORT_OPTIONS = [
   { value: 'noiseLevel-desc', label: 'Sessizlik: Yüksekten Düşüğe' },
   { value: 'outletCount-desc', label: 'Priz Sayısı: Yüksekten Düşüğe' },
   { value: 'coffeeQuality-desc', label: 'Kahve Kalitesi: Yüksekten Düşüğe' },
+  { value: 'priceLevel-desc', label: 'Fiyat: Yüksekten Düşüğe' },
+  { value: 'priceLevel-asc', label: 'Fiyat: Düşükten Yükseğe' },
 ];
 
 export function regionLabel(value) {

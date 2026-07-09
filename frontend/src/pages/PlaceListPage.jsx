@@ -8,7 +8,6 @@ const DEFAULT_FILTERS = {
   search: '',
   region: '',
   type: '',
-  maxPrice: '',
   minRating: '',
   minInternetSpeed: '',
   noiseLevel: '',

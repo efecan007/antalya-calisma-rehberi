@@ -61,12 +61,10 @@ export default function FilterBar({ filters, onChange }) {
             </option>
           ))}
         </select>
-        <select value={filters.maxPrice} onChange={(e) => update('maxPrice', e.target.value)} className={selectClass}>
+        <select value={filters.sort} onChange={(e) => update('sort', e.target.value)} className={selectClass}>
           <option value="">Tüm Fiyatlar</option>
-          <option value="1">₺ (Ekonomik)</option>
-          <option value="2">₺₺</option>
-          <option value="3">₺₺₺</option>
-          <option value="4">₺₺₺₺</option>
+          <option value="priceLevel-desc">Fiyat: Yüksekten Düşüğe</option>
+          <option value="priceLevel-asc">Fiyat: Düşükten Yükseğe</option>
         </select>
         <select value={filters.minRating} onChange={(e) => update('minRating', e.target.value)} className={selectClass}>
           <option value="">Tüm Puanlar</option>

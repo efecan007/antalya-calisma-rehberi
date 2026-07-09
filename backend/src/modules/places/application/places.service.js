@@ -21,6 +21,10 @@ const SORTABLE_FIELDS = new Set([
   'overallRating',
 ]);
 
+// priceLevel mekanın kendi fiyat kademesidir (place.priceLevel), yorum
+// ortalamalarından (ratings.priceLevel) ayrı tutulur; bu yüzden ayrı sette.
+const PLACE_SORTABLE_FIELDS = new Set(['priceLevel']);
+
 function normalizePhotoUrls(photoUrls) {
   if (!Array.isArray(photoUrls)) return [];
   return photoUrls.map((url) => String(url).trim()).filter(Boolean);
@@ -74,12 +78,13 @@ class PlacesService {
         );
       }
 
-      if (filters.sortBy && SORTABLE_FIELDS.has(filters.sortBy)) {
+      if (filters.sortBy && (SORTABLE_FIELDS.has(filters.sortBy) || PLACE_SORTABLE_FIELDS.has(filters.sortBy))) {
         const direction = filters.sortOrder === 'asc' ? 1 : -1;
         const field = filters.sortBy;
+        const isPlaceField = PLACE_SORTABLE_FIELDS.has(field);
         serialized = [...serialized].sort((a, b) => {
-          const aVal = a.ratings[field];
-          const bVal = b.ratings[field];
+          const aVal = isPlaceField ? a[field] : a.ratings[field];
+          const bVal = isPlaceField ? b[field] : b.ratings[field];
           if (aVal === null && bVal === null) return 0;
           if (aVal === null) return 1;
           if (bVal === null) return -1;
