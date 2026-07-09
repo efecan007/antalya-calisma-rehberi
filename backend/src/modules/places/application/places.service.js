@@ -158,7 +158,7 @@ class PlacesService {
       if (!place) {
         throw new NotFoundError('Mekan bulunamadı');
       }
-      return place.toJSON();
+      return place.toDetailJSON();
     };
 
     const result = this.cache

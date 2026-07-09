@@ -61,6 +61,10 @@ class Place {
     const { reviews, ...rest } = this;
     return { ...rest, ratings: RatingAggregator.computeAverages(reviews) };
   }
+
+  toDetailJSON() {
+    return { ...this.toJSON(), reviews: this.reviews };
+  }
 }
 
 module.exports = Place;
