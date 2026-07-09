@@ -7,6 +7,7 @@ import RatingStars from '../components/RatingStars';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 import FavoriteButton from '../components/FavoriteButton';
+import OccupancyCheckIn from '../components/OccupancyCheckIn';
 
 const STATUS_LABELS = {
   PENDING: { text: 'Onay Bekliyor', className: 'bg-amber-100 text-amber-700' },
@@ -68,6 +69,14 @@ export default function PlaceDetailPage() {
           <div className="mt-2">
             <RatingStars value={place.ratings.overallRating} />
             <span className="text-xs text-gray-400 ml-2">{place.ratings.reviewCount} değerlendirme</span>
+          </div>
+
+          <div className="mt-4">
+            <OccupancyCheckIn
+              placeId={place.id}
+              occupancy={place.occupancy}
+              onCheckedIn={(occupancy) => setPlace((p) => ({ ...p, occupancy }))}
+            />
           </div>
 
           {place.photoUrls?.length > 0 && (

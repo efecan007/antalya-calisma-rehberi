@@ -38,6 +38,16 @@ export const RATING_CRITERIA = [
   { field: 'overallRating', label: 'Genel Puan' },
 ];
 
+export const OCCUPANCY_LEVELS = [
+  { value: 'LOW', label: 'Sakin', emoji: '🟢', className: 'bg-emerald-50 text-emerald-700' },
+  { value: 'MEDIUM', label: 'Orta Yoğun', emoji: '🟡', className: 'bg-amber-50 text-amber-700' },
+  { value: 'HIGH', label: 'Kalabalık', emoji: '🔴', className: 'bg-red-50 text-red-700' },
+];
+
+export function occupancyMeta(value) {
+  return OCCUPANCY_LEVELS.find((o) => o.value === value);
+}
+
 export function regionLabel(value) {
   return REGIONS.find((r) => r.value === value)?.label || value;
 }

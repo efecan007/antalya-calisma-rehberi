@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import RatingStars from './RatingStars';
 import FavoriteButton from './FavoriteButton';
+import OccupancyBadge from './OccupancyBadge';
 import { regionLabel, typeLabel } from '../constants';
 
 export default function PlaceCard({ place, active, onHover }) {
@@ -40,6 +41,7 @@ export default function PlaceCard({ place, active, onHover }) {
           <RatingStars value={place.ratings?.overallRating} />
           <span className="text-xs text-gray-400">{place.ratings?.reviewCount || 0} değerlendirme</span>
         </div>
+        {place.occupancy && <OccupancyBadge occupancy={place.occupancy} className="mt-1.5" />}
       </div>
     </Link>
   );

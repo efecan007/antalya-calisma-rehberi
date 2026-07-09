@@ -49,9 +49,23 @@ function assertValidPriceLevel(priceLevel) {
 }
 
 class PlacesService {
-  constructor({ placeRepository, cache }) {
+  constructor({ placeRepository, cache, occupancyService }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
+    this.occupancyService = occupancyService;
+  }
+
+  // Doluluk bilgisi dakikalar içinde bayatlar, bu yüzden place list/detail
+  // cache'inin İÇİNE değil, cache'ten okunduktan SONRA eklenir — her istekte
+  // taze kalır, place cache'inin 60sn TTL'inden etkilenmez.
+  async _attachOccupancy(serializedPlaces) {
+    if (!this.occupancyService || !serializedPlaces.length) {
+      return serializedPlaces.map((p) => ({ ...p, occupancy: null }));
+    }
+    const summaries = await this.occupancyService.getSummaries({
+      placeIds: serializedPlaces.map((p) => p.id),
+    });
+    return serializedPlaces.map((p) => ({ ...p, occupancy: summaries[p.id] ?? null }));
   }
 
   async listPlaces(filters = {}) {
@@ -95,8 +109,10 @@ class PlacesService {
       return serialized;
     };
 
-    if (!this.cache) return fetch();
-    return this.cache.getOrSet(cacheKey, LIST_CACHE_TTL_SECONDS, fetch);
+    const serialized = this.cache
+      ? await this.cache.getOrSet(cacheKey, LIST_CACHE_TTL_SECONDS, fetch)
+      : await fetch();
+    return this._attachOccupancy(serialized);
   }
 
   async getPopularPlaces({ limit = DEFAULT_POPULAR_LIMIT } = {}) {
@@ -106,8 +122,10 @@ class PlacesService {
       return places.map((place) => place.toJSON());
     };
 
-    if (!this.cache) return fetch();
-    return this.cache.getOrSet(cacheKey, POPULAR_CACHE_TTL_SECONDS, fetch);
+    const serialized = this.cache
+      ? await this.cache.getOrSet(cacheKey, POPULAR_CACHE_TTL_SECONDS, fetch)
+      : await fetch();
+    return this._attachOccupancy(serialized);
   }
 
   async getTopRatedPlaces({ limit = DEFAULT_TOP_RATED_LIMIT } = {}) {
@@ -118,8 +136,10 @@ class PlacesService {
       return this._sortByRatingDesc(serialized).slice(0, limit);
     };
 
-    if (!this.cache) return fetch();
-    return this.cache.getOrSet(cacheKey, TOP_RATED_CACHE_TTL_SECONDS, fetch);
+    const serialized = this.cache
+      ? await this.cache.getOrSet(cacheKey, TOP_RATED_CACHE_TTL_SECONDS, fetch)
+      : await fetch();
+    return this._attachOccupancy(serialized);
   }
 
   async getRecommendations({ limit = DEFAULT_RECOMMENDATIONS_LIMIT } = {}) {
@@ -140,8 +160,10 @@ class PlacesService {
       return [...reviewed, ...unreviewed].slice(0, limit);
     };
 
-    if (!this.cache) return fetch();
-    return this.cache.getOrSet(cacheKey, RECOMMENDATIONS_CACHE_TTL_SECONDS, fetch);
+    const serialized = this.cache
+      ? await this.cache.getOrSet(cacheKey, RECOMMENDATIONS_CACHE_TTL_SECONDS, fetch)
+      : await fetch();
+    return this._attachOccupancy(serialized);
   }
 
   _sortByRatingDesc(serializedPlaces) {
@@ -180,7 +202,8 @@ class PlacesService {
       }
     }
 
-    return result;
+    const [withOccupancy] = await this._attachOccupancy([result]);
+    return withOccupancy;
   }
 
   async createPlace({

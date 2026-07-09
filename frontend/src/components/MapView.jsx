@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { regionLabel, typeLabel } from '../constants';
+import OccupancyBadge from './OccupancyBadge';
 
 // Harita, gizli (display:none) bir konteynerin içinde mount edildiğinde Leaflet
 // boyutu 0x0 olarak hesaplar; konteyner sonradan görünür olduğunda (ör. mobilde
@@ -59,6 +60,7 @@ export default function MapView({ places, activeId, onMarkerHover }) {
               <p className="text-xs text-gray-500 mt-0.5">
                 {place.ratings?.overallRating ?? '-'} / 5 · {place.ratings?.reviewCount || 0} değerlendirme
               </p>
+              {place.occupancy && <OccupancyBadge occupancy={place.occupancy} className="mt-1" />}
               <Link to={`/mekan/${place.id}`} className="text-xs text-brand-600 hover:underline mt-1 inline-block">
                 Detayları Gör →
               </Link>

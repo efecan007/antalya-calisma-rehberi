@@ -52,8 +52,9 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   places    Place[]
-  reviews   Review[]
-  favorites Favorite[]
+  reviews           Review[]
+  favorites         Favorite[]
+  occupancyCheckIns OccupancyCheckIn[]
 
   @@map("users")
 }
@@ -83,8 +84,9 @@ model Place {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
-  reviews   Review[]
-  favorites Favorite[]
+  reviews           Review[]
+  favorites         Favorite[]
+  occupancyCheckIns OccupancyCheckIn[]
 
   @@map("places")
 }
@@ -119,4 +121,17 @@ model Favorite {
 
   @@unique([userId, placeId])
   @@map("favorites")
+}
+
+model OccupancyCheckIn {
+  id        Int         @id @default(autoincrement())
+  placeId   Int         @map("place_id")
+  place     Place       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId    Int         @map("user_id")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level     LevelRating @map("occupancy_level")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([placeId, createdAt])
+  @@map("occupancy_checkins")
 }

@@ -7,8 +7,15 @@ const prisma = require('../../../database/prisma.client');
 const cache = require('../../cache/cache.service');
 const PlacesRepository = require('./places.repository');
 const PlacesService = require('../application/places.service');
+// occupancy.container'ı değil, doğrudan repository/service sınıflarını kullanır —
+// occupancy.container zaten bu dosyadaki placeRepository'e ihtiyaç duyuyor,
+// bu yüzden ters yönde import döngüsel bağımlılık yaratır.
+const OccupancyRepository = require('../../occupancy/infrastructure/occupancy.repository');
+const OccupancyService = require('../../occupancy/application/occupancy.service');
 
 const placeRepository = new PlacesRepository(prisma);
-const placesService = new PlacesService({ placeRepository, cache });
+const occupancyRepository = new OccupancyRepository(prisma);
+const occupancyService = new OccupancyService({ occupancyRepository, placeRepository });
+const placesService = new PlacesService({ placeRepository, cache, occupancyService });
 
 module.exports = { placeRepository, placesService };
