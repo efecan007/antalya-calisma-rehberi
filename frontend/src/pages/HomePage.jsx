@@ -28,7 +28,7 @@ export default function HomePage() {
           Antalya · Uzaktan Çalışma Rehberi
         </span>
         <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 max-w-3xl leading-tight tracking-tight">
-          Antalya'da laptopunu aç, kahveni al,
+          Antalya'da
           <br className="hidden sm:block" /> en iyi çalışma noktasını bul.
         </h1>
         <p className="mt-5 text-gray-600 max-w-xl">
