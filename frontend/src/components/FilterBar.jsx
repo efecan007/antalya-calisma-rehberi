@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { REGIONS, PLACE_TYPES, SORT_OPTIONS, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
+import { REGIONS, PLACE_TYPES, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
 
 const selectClass = 'border border-gray-200 bg-white rounded-md px-2 py-1.5 text-sm text-gray-700';
 
@@ -96,14 +96,6 @@ export default function FilterBar({ filters, onChange }) {
             </option>
           ))}
         </select>
-        <select value={filters.sort} onChange={(e) => update('sort', e.target.value)} className={selectClass}>
-          {SORT_OPTIONS.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-
         {activeCount > 0 && (
           <button
             type="button"
