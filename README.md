@@ -1,4 +1,4 @@
-# Work From Hotel / Cafe — Antalya
+# Remote Rehber — Antalya
 
 Antalya'da uzaktan çalışmaya uygun otel lobisi, kafe ve kütüphaneleri harita üzerinde listeleyen, internet hızı, priz sayısı, sessizlik, kahve kalitesi, çalışma ortamı, fiyat seviyesi ve genel puana göre değerlendirme yapılabilen bir rehber sitesi.
 

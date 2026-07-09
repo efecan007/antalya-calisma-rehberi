@@ -24,7 +24,7 @@ export default function Navbar() {
     <nav className="bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm relative z-20">
       <div className="px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 shrink-0" onClick={closeMenu}>
-          <span className="font-semibold text-lg text-gray-900">Work From Hotel</span>
+          <span className="font-semibold text-lg text-gray-900">Remote Rehber</span>
           <span className="text-xs font-medium text-brand-700 bg-brand-50 border border-brand-100 rounded-full px-2 py-0.5">
             Antalya
           </span>
