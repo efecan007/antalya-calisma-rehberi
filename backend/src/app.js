@@ -6,6 +6,7 @@ const placesRoutes = require('./modules/places/infrastructure/places.routes');
 const reviewsRoutes = require('./modules/reviews/infrastructure/reviews.routes');
 const favoritesRoutes = require('./modules/favorites/infrastructure/favorites.routes');
 const occupancyRoutes = require('./modules/occupancy/infrastructure/occupancy.routes');
+const chatRoutes = require('./modules/chat/infrastructure/chat.routes');
 const suggestionsRoutes = require('./modules/suggestions/infrastructure/suggestions.routes');
 const adminRoutes = require('./modules/admin/infrastructure/admin.routes');
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
@@ -26,6 +27,7 @@ function createApp() {
   app.use('/api/reviews', reviewsRoutes);
   app.use('/api/favorites', favoritesRoutes);
   app.use('/api/occupancy', occupancyRoutes);
+  app.use('/api/messages', chatRoutes);
   app.use('/api/suggestions', suggestionsRoutes);
   app.use('/api/admin', adminRoutes);
 

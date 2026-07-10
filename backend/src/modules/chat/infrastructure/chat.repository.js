@@ -36,6 +36,25 @@ class PrismaMessageRepository extends MessageRepository {
     });
     return records.reverse();
   }
+
+  async findById(id) {
+    return this.prisma.placeMessage.findUnique({ where: { id } });
+  }
+
+  // Moderasyon ekranı için: tüm mekanlardaki mesajlar, en yeniden eskiye.
+  async findAll() {
+    return this.prisma.placeMessage.findMany({
+      include: {
+        user: { select: USER_SELECT },
+        place: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async delete(id) {
+    await this.prisma.placeMessage.delete({ where: { id } });
+  }
 }
 
 module.exports = PrismaMessageRepository;

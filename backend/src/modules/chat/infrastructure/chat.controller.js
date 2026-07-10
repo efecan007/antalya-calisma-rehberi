@@ -23,4 +23,26 @@ async function listMessages(req, res, next) {
   }
 }
 
-module.exports = { sendMessage, listMessages };
+async function deleteMessage(req, res, next) {
+  try {
+    await chatService.deleteMessage({
+      messageId: Number(req.params.id),
+      userId: req.user.id,
+      requesterRole: req.user.role,
+    });
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listAllMessages(_req, res, next) {
+  try {
+    const messages = await chatService.listAll();
+    res.json(messages);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { sendMessage, listMessages, deleteMessage, listAllMessages };

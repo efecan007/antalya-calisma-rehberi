@@ -19,22 +19,25 @@ export default function AdminPage() {
   const [places, setPlaces] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [users, setUsers] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
     setLoading(true);
-    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes] = await Promise.all([
+    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes, messagesRes] = await Promise.all([
       apiClient.get('/admin/dashboard'),
       apiClient.get('/places'),
       apiClient.get('/admin/suggestions'),
       apiClient.get('/reviews'),
       apiClient.get('/admin/users'),
+      apiClient.get('/messages'),
     ]);
     setStats(statsRes.data);
     setPlaces(placesRes.data);
     setPendingPlaces(pendingRes.data);
     setReviews(reviewsRes.data);
     setUsers(usersRes.data);
+    setMessages(messagesRes.data);
     setLoading(false);
   }
 
@@ -66,6 +69,12 @@ export default function AdminPage() {
   async function deleteUser(id) {
     if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
     await apiClient.delete(`/admin/users/${id}`);
+    loadAll();
+  }
+
+  async function deleteMessage(id) {
+    if (!window.confirm('Bu mesajı silmek istediğinize emin misiniz?')) return;
+    await apiClient.delete(`/messages/${id}`);
     loadAll();
   }
 
@@ -201,6 +210,30 @@ export default function AdminPage() {
                   Sil
                 </button>
               )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="font-medium text-gray-900 mb-3">Sohbet Mesajları ({messages.length})</h2>
+        {messages.length === 0 && <p className="text-sm text-gray-500">Henüz mesaj yok.</p>}
+        <div className="space-y-2">
+          {messages.map((m) => (
+            <div key={m.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-900">
+                  <span className="font-medium">{m.user?.name}</span> ·{' '}
+                  <span className="text-gray-500">{m.place?.name}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">{m.content}</p>
+              </div>
+              <button
+                onClick={() => deleteMessage(m.id)}
+                className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
+              >
+                Sil
+              </button>
             </div>
           ))}
         </div>

@@ -1,4 +1,4 @@
-const { NotFoundError, ValidationError } = require('../../../common/errors');
+const { NotFoundError, ValidationError, ForbiddenError } = require('../../../common/errors');
 
 const MAX_MESSAGE_LENGTH = 1000;
 const DEFAULT_PAGE_SIZE = 50;
@@ -33,6 +33,22 @@ class ChatService {
     }
 
     return this.messageRepository.findByPlace(placeId, { afterId, limit: DEFAULT_PAGE_SIZE });
+  }
+
+  async listAll() {
+    return this.messageRepository.findAll();
+  }
+
+  async deleteMessage({ messageId, userId, requesterRole }) {
+    const message = await this.messageRepository.findById(messageId);
+    if (!message) {
+      throw new NotFoundError('Mesaj bulunamadı');
+    }
+    if (message.userId !== userId && requesterRole !== 'ADMIN') {
+      throw new ForbiddenError('Bu mesajı silme yetkiniz yok');
+    }
+
+    await this.messageRepository.delete(messageId);
   }
 }
 
