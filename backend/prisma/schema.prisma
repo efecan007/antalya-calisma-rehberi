@@ -55,6 +55,7 @@ model User {
   reviews           Review[]
   favorites         Favorite[]
   occupancyCheckIns OccupancyCheckIn[]
+  messages          PlaceMessage[]
 
   @@map("users")
 }
@@ -87,6 +88,7 @@ model Place {
   reviews           Review[]
   favorites         Favorite[]
   occupancyCheckIns OccupancyCheckIn[]
+  messages          PlaceMessage[]
 
   @@map("places")
 }
@@ -134,4 +136,17 @@ model OccupancyCheckIn {
 
   @@index([placeId, createdAt])
   @@map("occupancy_checkins")
+}
+
+model PlaceMessage {
+  id        Int      @id @default(autoincrement())
+  placeId   Int      @map("place_id")
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([placeId, createdAt])
+  @@map("place_messages")
 }

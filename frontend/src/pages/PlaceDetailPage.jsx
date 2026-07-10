@@ -8,6 +8,7 @@ import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 import FavoriteButton from '../components/FavoriteButton';
 import OccupancyCheckIn from '../components/OccupancyCheckIn';
+import PlaceChat from '../components/PlaceChat';
 
 const STATUS_LABELS = {
   PENDING: { text: 'Onay Bekliyor', className: 'bg-amber-100 text-amber-700' },
@@ -144,6 +145,8 @@ export default function PlaceDetailPage() {
             {user && !alreadyReviewed && <ReviewForm placeId={place.id} onSubmitted={fetchPlace} />}
           </div>
         </div>
+
+        <PlaceChat placeId={place.id} />
       </div>
     </div>
   );

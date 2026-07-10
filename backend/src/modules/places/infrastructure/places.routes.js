@@ -11,6 +11,7 @@ const {
 } = require('./places.controller');
 const { requireAuth, requireAdmin, optionalAuth } = require('../../../common/guards/auth.guard');
 const { createReview, listReviews } = require('../../reviews/infrastructure/reviews.controller');
+const { sendMessage, listMessages } = require('../../chat/infrastructure/chat.controller');
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.patch('/:id', requireAuth, requireAdmin, updatePlace);
 router.delete('/:id', requireAuth, requireAdmin, deletePlace);
 router.post('/:id/reviews', requireAuth, createReview);
 router.get('/:id/reviews', listReviews);
+router.post('/:id/messages', requireAuth, sendMessage);
+router.get('/:id/messages', requireAuth, listMessages);
 
 module.exports = router;
