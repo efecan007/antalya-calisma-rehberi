@@ -116,7 +116,7 @@ export default function PlaceDetailPage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-            {RATING_CRITERIA.filter((c) => c.field !== 'overallRating').map((c) => (
+            {RATING_CRITERIA.filter((c) => c.field !== 'overallRating' && c.field !== 'outletCount').map((c) => (
               <div key={c.field} className="bg-gray-50 rounded-xl p-2.5 text-center">
                 <p className="text-xs text-gray-500">{c.label}</p>
                 <p className="font-semibold text-gray-900">{place.ratings[c.field] ?? '-'}</p>
