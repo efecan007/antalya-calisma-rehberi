@@ -15,6 +15,14 @@ class UserRepository {
     throw new Error('Not implemented');
   }
 
+  async findByProviderId(_provider, _providerId) {
+    throw new Error('Not implemented');
+  }
+
+  async update(_id, _userData) {
+    throw new Error('Not implemented');
+  }
+
   async findAll() {
     throw new Error('Not implemented');
   }

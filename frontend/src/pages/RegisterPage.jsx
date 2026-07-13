@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LinkedInLoginButton from '../components/LinkedInLoginButton';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -62,6 +63,12 @@ export default function RegisterPage() {
         >
           {submitting ? 'Kaydediliyor...' : 'Kayıt Ol'}
         </button>
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          veya
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+        <LinkedInLoginButton />
         <p className="text-sm text-gray-500 text-center">
           Zaten hesabın var mı?{' '}
           <Link to="/giris" className="text-brand-600 hover:underline">

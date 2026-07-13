@@ -65,6 +65,38 @@ class AuthService {
     return { token, user: user.toPublicJSON() };
   }
 
+  async loginWithOAuth({ provider, providerId, email, name, avatarUrl }) {
+    if (!provider || !providerId || !email) {
+      throw new ValidationError('provider, providerId ve email zorunludur');
+    }
+    const normalizedEmail = normalizeEmail(email);
+
+    let user = await this.userRepository.findByProviderId(provider, providerId);
+
+    if (!user) {
+      const existingByEmail = await this.userRepository.findByEmail(normalizedEmail);
+      if (existingByEmail) {
+        user = await this.userRepository.update(existingByEmail.id, {
+          provider,
+          providerId,
+          avatarUrl: avatarUrl || existingByEmail.avatarUrl,
+        });
+      } else {
+        const created = await this.userRepository.create({
+          email: normalizedEmail,
+          name: (name || normalizedEmail).trim(),
+          provider,
+          providerId,
+          avatarUrl,
+        });
+        user = created instanceof User ? created : new User(created);
+      }
+    }
+
+    const token = this.signToken({ id: user.id, role: user.role });
+    return { token, user: user.toPublicJSON() };
+  }
+
   async getCurrentUser({ userId }) {
     const user = await this.userRepository.findById(userId);
     if (!user) {

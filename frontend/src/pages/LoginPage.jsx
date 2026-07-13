@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LinkedInLoginButton from '../components/LinkedInLoginButton';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -53,6 +54,12 @@ export default function LoginPage() {
         >
           {submitting ? 'Giriş yapılıyor...' : 'Giriş Yap'}
         </button>
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          veya
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+        <LinkedInLoginButton />
         <p className="text-sm text-gray-500 text-center">
           Hesabın yok mu?{' '}
           <Link to="/kayit" className="text-brand-600 hover:underline">

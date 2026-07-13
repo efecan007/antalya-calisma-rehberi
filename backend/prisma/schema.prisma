@@ -45,9 +45,12 @@ enum LevelRating {
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
-  passwordHash String   @map("password_hash")
+  passwordHash String?  @map("password_hash")
   name         String   @map("full_name")
   role         Role     @default(USER)
+  provider     String   @default("local")
+  providerId   String?  @map("provider_id")
+  avatarUrl    String?  @map("avatar_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -57,6 +60,7 @@ model User {
   occupancyCheckIns OccupancyCheckIn[]
   messages          PlaceMessage[]
 
+  @@unique([provider, providerId])
   @@map("users")
 }
 

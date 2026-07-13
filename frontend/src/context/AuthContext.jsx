@@ -40,6 +40,12 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
+  async function loginWithToken(token) {
+    localStorage.setItem('wfh_token', token);
+    const { data } = await apiClient.get('/auth/me');
+    setUser(data);
+  }
+
   async function logout() {
     try {
       await apiClient.post('/auth/logout');
@@ -52,7 +58,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithToken, logout }}>
       {children}
     </AuthContext.Provider>
   );

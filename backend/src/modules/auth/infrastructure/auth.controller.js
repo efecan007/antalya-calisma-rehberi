@@ -2,6 +2,7 @@ const { hashPassword, comparePassword } = require('../../../common/security/pass
 const { signToken } = require('../../../common/security/jwt');
 const { userRepository } = require('../../users/infrastructure/users.container');
 const AuthService = require('../application/auth.service');
+const linkedin = require('./linkedin.client');
 
 const authService = new AuthService({ userRepository, hashPassword, comparePassword, signToken });
 
@@ -38,4 +39,30 @@ function logout(_req, res) {
   res.status(204).send();
 }
 
-module.exports = { register, login, me, logout };
+function linkedinRedirect(_req, res) {
+  res.redirect(linkedin.buildAuthorizationUrl());
+}
+
+async function linkedinCallback(req, res) {
+  const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  try {
+    const { code, state, error } = req.query;
+    if (error || !code || !state) {
+      throw new Error(error || 'Eksik code/state');
+    }
+    linkedin.verifyState(state);
+
+    const accessToken = await linkedin.exchangeCodeForToken(code);
+    const profile = await linkedin.fetchProfile(accessToken);
+    if (!profile.email) {
+      throw new Error('LinkedIn hesabından e-posta alınamadı');
+    }
+
+    const { token } = await authService.loginWithOAuth({ provider: 'linkedin', ...profile });
+    res.redirect(`${frontendUrl}/giris/linkedin?token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    res.redirect(`${frontendUrl}/giris?error=linkedin_auth_failed`);
+  }
+}
+
+module.exports = { register, login, me, logout, linkedinRedirect, linkedinCallback };
