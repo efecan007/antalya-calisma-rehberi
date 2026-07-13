@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import useAutoReloadOnNewVersion from './hooks/useAutoReloadOnNewVersion';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -15,6 +16,8 @@ import FavoritesPage from './pages/FavoritesPage';
 import AdminPage from './pages/AdminPage';
 
 export default function App() {
+  useAutoReloadOnNewVersion();
+
   return (
     <div className="h-screen flex flex-col">
       <Navbar />

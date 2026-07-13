@@ -1,8 +1,26 @@
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const buildId = String(Date.now());
+
+// Her build'de dist/version.txt'ye aynı buildId'yi yazar; çalışan sekmeler bu dosyayı
+// polling ile kontrol ederek yeni bir deploy olduğunu anlayıp kendini yeniler.
+function writeVersionFile() {
+  return {
+    name: 'write-version-file',
+    writeBundle(options) {
+      writeFileSync(join(options.dir, 'version.txt'), buildId);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), writeVersionFile()],
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId),
+  },
   server: {
     host: true,
     port: 5173,
