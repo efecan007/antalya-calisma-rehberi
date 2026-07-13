@@ -52,7 +52,7 @@ class AuthService {
     }
 
     const user = await this.userRepository.findByEmail(normalizeEmail(email));
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedError('Geçersiz e-posta veya şifre');
     }
 
