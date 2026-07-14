@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { parseCorsOrigin } = require('./common/security/cors-origin');
 
 const authRoutes = require('./modules/auth/infrastructure/auth.routes');
 const placesRoutes = require('./modules/places/infrastructure/places.routes');
@@ -16,7 +17,7 @@ const { generalLimiter } = require('./common/guards/rate-limit.guard');
 function createApp() {
   const app = express();
 
-  app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+  app.use(cors({ origin: parseCorsOrigin(process.env.CORS_ORIGIN) }));
   app.use(express.json());
   app.use('/api', generalLimiter);
 

@@ -1,5 +1,6 @@
 const { Server } = require('socket.io');
 const { verifyToken } = require('../../../common/security/jwt');
+const { parseCorsOrigin } = require('../../../common/security/cors-origin');
 
 // Tek bir global yayın odası: aynı anda yalnızca bir kişi yayın yapabilir,
 // herkes (misafir dahil) izleyebilir. Sinyalleşme mesajları (offer/answer/ice-candidate)
@@ -8,7 +9,7 @@ const { verifyToken } = require('../../../common/security/jwt');
 function attachStreamingGateway(httpServer) {
   const io = new Server(httpServer, {
     path: '/socket.io',
-    cors: { origin: process.env.CORS_ORIGIN || '*' },
+    cors: { origin: parseCorsOrigin(process.env.CORS_ORIGIN) },
   });
 
   let broadcaster = null; // { socketId, userId, name }
