@@ -37,6 +37,9 @@ export default function Navbar() {
           <NavLink to="/harita" className={linkClass}>
             Harita
           </NavLink>
+          <NavLink to="/yayin" className={linkClass}>
+            Canlı Yayın
+          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass}>
@@ -98,6 +101,9 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/harita" className={linkClass} onClick={closeMenu}>
             Harita
+          </NavLink>
+          <NavLink to="/yayin" className={linkClass} onClick={closeMenu}>
+            Canlı Yayın
           </NavLink>
           {user ? (
             <>
