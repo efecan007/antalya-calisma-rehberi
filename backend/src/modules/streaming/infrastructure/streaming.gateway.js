@@ -2,26 +2,37 @@ const { Server } = require('socket.io');
 const { verifyToken } = require('../../../common/security/jwt');
 const { parseCorsOrigin } = require('../../../common/security/cors-origin');
 
-// Tek bir global yayın odası: aynı anda yalnızca bir kişi yayın yapabilir,
-// herkes (misafir dahil) izleyebilir. Sinyalleşme mesajları (offer/answer/ice-candidate)
-// sunucu üzerinden doğrudan hedef sokete iletilir; medya akışı taraflar arasında
-// doğrudan (WebRTC peer-to-peer) gerçekleşir.
+// Sabit oda listesi: her oda kendi yayın slotuna sahiptir, aynı anda her odada
+// yalnızca bir kişi yayın yapabilir, herkes (misafir dahil) izleyebilir.
+// Sinyalleşme mesajları (offer/answer/ice-candidate) sunucu üzerinden doğrudan
+// hedef sokete iletilir; medya akışı taraflar arasında doğrudan (WebRTC
+// peer-to-peer) gerçekleşir.
+const ROOM_IDS = ['oda-1', 'oda-2', 'oda-3'];
+
 function attachStreamingGateway(httpServer) {
   const io = new Server(httpServer, {
     path: '/socket.io',
     cors: { origin: parseCorsOrigin(process.env.CORS_ORIGIN) },
   });
 
-  let broadcaster = null; // { socketId, userId, name }
+  const broadcasters = new Map(); // roomId -> { socketId, userId }
 
-  function currentStatus() {
-    return { live: Boolean(broadcaster) };
+  function currentStatus(roomId) {
+    return { roomId, live: Boolean(broadcasters.get(roomId)) };
+  }
+
+  function allStatuses() {
+    return ROOM_IDS.map(currentStatus);
   }
 
   io.on('connection', (socket) => {
-    socket.emit('stream-status', currentStatus());
+    socket.emit('rooms-status', allStatuses());
 
-    socket.on('start-broadcast', ({ token } = {}, ack) => {
+    socket.on('start-broadcast', ({ roomId, token } = {}, ack) => {
+      if (!ROOM_IDS.includes(roomId)) {
+        return ack?.({ error: 'Geçersiz oda' });
+      }
+
       let payload;
       try {
         payload = verifyToken(token);
@@ -29,27 +40,32 @@ function attachStreamingGateway(httpServer) {
         return ack?.({ error: 'Yayın başlatmak için giriş yapmalısınız' });
       }
 
-      if (broadcaster) {
-        return ack?.({ error: 'Şu anda başka bir yayın devam ediyor' });
+      if (broadcasters.get(roomId)) {
+        return ack?.({ error: 'Bu odada şu anda başka bir yayın devam ediyor' });
       }
 
-      broadcaster = { socketId: socket.id, userId: payload.id };
+      broadcasters.set(roomId, { socketId: socket.id, userId: payload.id });
       socket.data.isBroadcaster = true;
+      socket.data.roomId = roomId;
+      socket.join(roomId);
       ack?.({ ok: true });
-      socket.broadcast.emit('stream-status', currentStatus());
+      socket.broadcast.emit('stream-status', currentStatus(roomId));
     });
 
-    socket.on('stop-broadcast', () => {
-      if (broadcaster?.socketId === socket.id) {
-        broadcaster = null;
-        io.emit('stream-status', currentStatus());
+    socket.on('stop-broadcast', ({ roomId } = {}) => {
+      if (broadcasters.get(roomId)?.socketId === socket.id) {
+        broadcasters.delete(roomId);
+        socket.leave(roomId);
+        io.emit('stream-status', currentStatus(roomId));
       }
     });
 
-    socket.on('viewer-join', (_payload, ack) => {
+    socket.on('viewer-join', ({ roomId } = {}, ack) => {
+      const broadcaster = broadcasters.get(roomId);
       if (!broadcaster) {
         return ack?.({ live: false });
       }
+      socket.join(roomId);
       io.to(broadcaster.socketId).emit('viewer-joined', { viewerId: socket.id });
       ack?.({ live: true });
     });
@@ -61,9 +77,10 @@ function attachStreamingGateway(httpServer) {
     });
 
     socket.on('disconnect', () => {
-      if (broadcaster?.socketId === socket.id) {
-        broadcaster = null;
-        io.emit('stream-status', currentStatus());
+      const { roomId } = socket.data;
+      if (roomId && broadcasters.get(roomId)?.socketId === socket.id) {
+        broadcasters.delete(roomId);
+        io.emit('stream-status', currentStatus(roomId));
       }
     });
   });
@@ -71,4 +88,4 @@ function attachStreamingGateway(httpServer) {
   return io;
 }
 
-module.exports = { attachStreamingGateway };
+module.exports = { attachStreamingGateway, ROOM_IDS };

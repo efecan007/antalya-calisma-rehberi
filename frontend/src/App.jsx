@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage';
 import PlaceListPage from './pages/PlaceListPage';
 import MapPage from './pages/MapPage';
 import StreamPage from './pages/StreamPage';
+import StreamRoomsPage from './pages/StreamRoomsPage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -27,7 +28,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/mekanlar" element={<PlaceListPage />} />
           <Route path="/harita" element={<MapPage />} />
-          <Route path="/yayin" element={<StreamPage />} />
+          <Route path="/yayin" element={<StreamRoomsPage />} />
+          <Route path="/yayin/:roomId" element={<StreamPage />} />
           <Route path="/mekan/:id" element={<PlaceDetailPage />} />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/giris/linkedin" element={<LinkedInCallbackPage />} />

@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getSocket } from '../lib/socket';
+import { ROOMS, getRoomName } from '../lib/rooms';
 
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 export default function StreamPage() {
+  const { roomId } = useParams();
   const { user } = useAuth();
   const [isLive, setIsLive] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -38,10 +41,13 @@ export default function StreamPage() {
   }, []);
 
   useEffect(() => {
+    if (!ROOMS.some((room) => room.id === roomId)) return undefined;
+
     const socket = getSocket();
     socket.connect();
 
-    function handleStreamStatus({ live }) {
+    function handleStreamStatus({ roomId: statusRoomId, live }) {
+      if (statusRoomId !== roomId) return;
       setIsLive(live);
       if (!live) cleanupViewer();
     }
@@ -119,11 +125,18 @@ export default function StreamPage() {
       }
     }
 
+    function handleRoomsStatus(statuses) {
+      const status = statuses.find((s) => s.roomId === roomId);
+      if (status) handleStreamStatus(status);
+    }
+
+    socket.on('rooms-status', handleRoomsStatus);
     socket.on('stream-status', handleStreamStatus);
     socket.on('viewer-joined', handleViewerJoined);
     socket.on('signal', handleSignal);
 
     return () => {
+      socket.off('rooms-status', handleRoomsStatus);
       socket.off('stream-status', handleStreamStatus);
       socket.off('viewer-joined', handleViewerJoined);
       socket.off('signal', handleSignal);
@@ -131,7 +144,7 @@ export default function StreamPage() {
       cleanupViewer();
       socket.disconnect();
     };
-  }, [cleanupBroadcaster, cleanupViewer]);
+  }, [roomId, cleanupBroadcaster, cleanupViewer]);
 
   useEffect(() => {
     if (isBroadcasting && localVideoRef.current && localStreamRef.current) {
@@ -157,7 +170,7 @@ export default function StreamPage() {
 
       const socket = getSocket();
       const token = localStorage.getItem('wfh_token');
-      socket.emit('start-broadcast', { token }, (res) => {
+      socket.emit('start-broadcast', { roomId, token }, (res) => {
         if (res?.error) {
           setError(res.error);
           cleanupBroadcaster();
@@ -171,21 +184,40 @@ export default function StreamPage() {
   }
 
   function stopBroadcast() {
-    getSocket().emit('stop-broadcast');
+    getSocket().emit('stop-broadcast', { roomId });
     cleanupBroadcaster();
   }
 
   function joinAsViewer() {
     setError('');
-    getSocket().emit('viewer-join', {}, (res) => {
+    getSocket().emit('viewer-join', { roomId }, (res) => {
       if (!res?.live) setError('Şu anda canlı yayın yok');
     });
+  }
+
+  if (!ROOMS.some((room) => room.id === roomId)) {
+    return (
+      <div className="h-full overflow-y-auto bg-gray-50 px-4 py-8">
+        <div className="max-w-3xl mx-auto space-y-4">
+          <p className="text-sm text-gray-600">Oda bulunamadı.</p>
+          <Link to="/yayin" className="text-brand-600 hover:text-brand-700 text-sm font-medium">
+            Odalara geri dön
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="h-full overflow-y-auto bg-gray-50 px-4 py-8">
       <div className="max-w-3xl mx-auto space-y-4">
-        <h1 className="text-xl font-semibold text-gray-900">Canlı Yayın</h1>
+        <div className="flex items-center gap-2">
+          <Link to="/yayin" className="text-sm text-gray-500 hover:text-brand-700 transition">
+            Odalar
+          </Link>
+          <span className="text-gray-300">/</span>
+          <h1 className="text-xl font-semibold text-gray-900">{getRoomName(roomId)}</h1>
+        </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {isBroadcasting ? (
