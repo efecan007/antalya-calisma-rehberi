@@ -1,12 +1,17 @@
 const { NotFoundError, ValidationError } = require('../../../common/errors');
 const LevelRating = require('../../places/domain/LevelRating');
 const { summarize } = require('../domain/OccupancyAggregator');
+const { buildForecast } = require('../domain/OccupancyForecast');
 
-// Doluluk hızlı değiştiği için sadece son 2 saatteki check-in'ler sayılır.
-const WINDOW_MINUTES = 120;
+// Doluluk hızlı değiştiği için check-in'ler yalnızca 90 dakika boyunca
+// özete dahil edilir; frontend kullanıcıya 60. dakikada "hâlâ burada
+// mısın?" diye sorar, 90. dakikada check-in otomatik olarak düşer.
+const WINDOW_MINUTES = 90;
 // Aynı kullanıcının aynı mekanı arka arkaya işaretleyerek özeti manipüle
 // etmesini önlemek için bekleme süresi.
 const COOLDOWN_MINUTES = 15;
+// Tahmini yoğunluk, son kaç günlük check-in geçmişine bakılarak hesaplanır.
+const FORECAST_HISTORY_DAYS = 45;
 
 class OccupancyService {
   constructor({ occupancyRepository, placeRepository }) {
@@ -57,6 +62,12 @@ class OccupancyService {
       result[placeId] = summarize(byPlace.get(placeId) || []);
     }
     return result;
+  }
+
+  async getForecast({ placeId }) {
+    const since = new Date(Date.now() - FORECAST_HISTORY_DAYS * 24 * 60 * 60000);
+    const checkins = await this.occupancyRepository.findSinceByPlaceId(placeId, since);
+    return buildForecast(checkins);
   }
 }
 

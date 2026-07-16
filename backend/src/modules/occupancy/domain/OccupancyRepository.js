@@ -10,6 +10,10 @@ class OccupancyRepository {
   async findRecentByPlaceIds(_placeIds, _since) {
     throw new Error('Not implemented');
   }
+
+  async findSinceByPlaceId(_placeId, _since) {
+    throw new Error('Not implemented');
+  }
 }
 
 module.exports = OccupancyRepository;

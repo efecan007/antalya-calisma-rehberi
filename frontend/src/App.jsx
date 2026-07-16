@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import useAutoReloadOnNewVersion from './hooks/useAutoReloadOnNewVersion';
 import Navbar from './components/Navbar';
+import CheckInReminderBanner from './components/CheckInReminderBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
@@ -76,6 +77,7 @@ export default function App() {
           />
         </Routes>
       </main>
+      <CheckInReminderBanner />
     </div>
   );
 }

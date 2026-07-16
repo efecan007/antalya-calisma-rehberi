@@ -2,9 +2,10 @@ import { useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { OCCUPANCY_LEVELS } from '../constants';
+import { saveActiveCheckIn } from '../lib/checkInReminder';
 import OccupancyBadge from './OccupancyBadge';
 
-export default function OccupancyCheckIn({ placeId, occupancy, onCheckedIn }) {
+export default function OccupancyCheckIn({ placeId, placeName, occupancy, onCheckedIn }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -14,6 +15,7 @@ export default function OccupancyCheckIn({ placeId, occupancy, onCheckedIn }) {
     setError('');
     try {
       const { data } = await apiClient.post(`/occupancy/${placeId}`, { level });
+      saveActiveCheckIn({ placeId, placeName, level });
       onCheckedIn?.(data);
     } catch (err) {
       setError(err.response?.data?.message || 'İşaretleme başarısız oldu');

@@ -23,6 +23,13 @@ class PrismaOccupancyRepository extends OccupancyRepository {
       select: { placeId: true, level: true, createdAt: true },
     });
   }
+
+  async findSinceByPlaceId(placeId, since) {
+    return this.prisma.occupancyCheckIn.findMany({
+      where: { placeId, createdAt: { gte: since } },
+      select: { level: true, createdAt: true },
+    });
+  }
 }
 
 module.exports = PrismaOccupancyRepository;

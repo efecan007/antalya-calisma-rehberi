@@ -22,4 +22,13 @@ async function getSummary(req, res, next) {
   }
 }
 
-module.exports = { checkIn, getSummary };
+async function getForecast(req, res, next) {
+  try {
+    const forecast = await occupancyService.getForecast({ placeId: Number(req.params.placeId) });
+    res.json(forecast);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { checkIn, getSummary, getForecast };
