@@ -18,6 +18,8 @@ const initialState = {
   noiseLevel: 'MEDIUM',
   deskFriendly: true,
   openingHours: '',
+  openTime: '',
+  closeTime: '',
   hasWifi: true,
   hasAC: true,
   meetingSuitable: false,
@@ -53,6 +55,8 @@ export default function AddPlacePage() {
         noiseLevel: data.noiseLevel,
         deskFriendly: data.deskFriendly,
         openingHours: data.openingHours || '',
+        openTime: data.openTime || '',
+        closeTime: data.closeTime || '',
         hasWifi: data.hasWifi,
         hasAC: data.hasAC,
         meetingSuitable: data.meetingSuitable,
@@ -245,6 +249,29 @@ export default function AddPlacePage() {
           onChange={(e) => update('openingHours', e.target.value)}
           className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm text-gray-700">
+            Açılış Saati
+            <input
+              type="time"
+              value={form.openTime}
+              onChange={(e) => update('openTime', e.target.value)}
+              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mt-1"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            Kapanış Saati
+            <input
+              type="time"
+              value={form.closeTime}
+              onChange={(e) => update('closeTime', e.target.value)}
+              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm mt-1"
+            />
+          </label>
+        </div>
+        <p className="text-xs text-gray-400 -mt-1">
+          "Şu an açık/kapalı" ve yakınımdaki mekanlar özelliği için kullanılır.
+        </p>
 
         <textarea
           placeholder="Fotoğraf URL'leri (her satıra bir tane)"

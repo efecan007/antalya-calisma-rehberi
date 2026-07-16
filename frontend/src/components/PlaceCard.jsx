@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom';
 import RatingStars from './RatingStars';
 import FavoriteButton from './FavoriteButton';
 import OccupancyBadge from './OccupancyBadge';
+import OpenStatusBadge from './OpenStatusBadge';
 import { regionLabel, typeLabel } from '../constants';
+import { formatDistance } from '../lib/geo';
 
 export default function PlaceCard({ place, active, onHover }) {
   return (
@@ -37,11 +39,17 @@ export default function PlaceCard({ place, active, onHover }) {
         <p className="text-xs text-gray-500 mt-0.5 truncate">
           {regionLabel(place.region)} · {place.address}
         </p>
+        {place.distanceKm != null && (
+          <p className="text-xs text-brand-600 font-medium mt-0.5">{formatDistance(place.distanceKm)} uzaklıkta</p>
+        )}
         <div className="mt-2 flex items-center justify-between">
           <RatingStars value={place.ratings?.overallRating} />
           <span className="text-xs text-gray-400">{place.ratings?.reviewCount || 0} değerlendirme</span>
         </div>
-        {place.occupancy && <OccupancyBadge occupancy={place.occupancy} className="mt-1.5" />}
+        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+          {place.occupancy && <OccupancyBadge occupancy={place.occupancy} />}
+          <OpenStatusBadge openTime={place.openTime} closeTime={place.closeTime} />
+        </div>
       </div>
     </Link>
   );

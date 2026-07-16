@@ -19,6 +19,8 @@ class Place {
     noiseLevel,
     deskFriendly,
     openingHours,
+    openTime,
+    closeTime,
     hasWifi,
     hasAC,
     meetingSuitable,
@@ -47,6 +49,8 @@ class Place {
     this.noiseLevel = noiseLevel ?? 'MEDIUM';
     this.deskFriendly = deskFriendly ?? true;
     this.openingHours = openingHours ?? null;
+    this.openTime = openTime ?? null;
+    this.closeTime = closeTime ?? null;
     this.hasWifi = hasWifi ?? true;
     this.hasAC = hasAC ?? true;
     this.meetingSuitable = meetingSuitable ?? false;

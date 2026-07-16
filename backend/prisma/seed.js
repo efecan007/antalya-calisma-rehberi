@@ -11,6 +11,60 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
+// Tür bazlı varsayılan çalışma saatleri (demo veri için); gerçek mekan
+// verisiyle değiştirildiğinde her mekan kendi saatlerini alacaktır.
+const DEFAULT_HOURS_BY_TYPE = {
+  HOTEL: { openTime: '00:00', closeTime: '23:59' },
+  CAFE: { openTime: '08:00', closeTime: '22:00' },
+  LIBRARY: { openTime: '09:00', closeTime: '18:00' },
+  COWORKING: { openTime: '08:00', closeTime: '20:00' },
+};
+
+// "Tahmini yoğunluk" özelliğinin gösterecek bir şeyi olsun diye, tür bazlı
+// gerçekçi haftalık örüntülerle geçmişe dönük demo check-in verisi üretilir.
+const FORECAST_SEED_DAYS = 45;
+const CHECKIN_HOUR_RANGE = { start: 8, end: 22 };
+const WEEKDAYS_MON_FRI = [1, 2, 3, 4, 5];
+const DAY_PATTERNS_BY_TYPE = {
+  CAFE: { peakHours: [14, 15, 16], weekdays: WEEKDAYS_MON_FRI },
+  COWORKING: { peakHours: [9, 10, 11, 14, 15, 16, 17], weekdays: WEEKDAYS_MON_FRI },
+  LIBRARY: { peakHours: [15, 16, 17], weekdays: WEEKDAYS_MON_FRI },
+  HOTEL: { peakHours: [18, 19, 20], weekdays: [0, 1, 2, 3, 4, 5, 6] },
+};
+
+async function seedOccupancyHistory(place, users) {
+  const alreadySeeded = await prisma.occupancyCheckIn.count({ where: { placeId: place.id } });
+  if (alreadySeeded > 0) return;
+
+  const pattern = DAY_PATTERNS_BY_TYPE[place.type] || DAY_PATTERNS_BY_TYPE.CAFE;
+  const rows = [];
+
+  for (let daysAgo = 1; daysAgo <= FORECAST_SEED_DAYS; daysAgo += 1) {
+    const day = new Date();
+    day.setDate(day.getDate() - daysAgo);
+    const isPatternDay = pattern.weekdays.includes(day.getDay());
+
+    for (let hour = CHECKIN_HOUR_RANGE.start; hour <= CHECKIN_HOUR_RANGE.end; hour += 1) {
+      const isPeak = isPatternDay && pattern.peakHours.includes(hour);
+      const checkinCount = isPeak ? 2 + Math.floor(Math.random() * 3) : Math.random() < 0.35 ? 1 : 0;
+
+      for (let i = 0; i < checkinCount; i += 1) {
+        const level = isPeak
+          ? Math.random() < 0.75 ? 'HIGH' : 'MEDIUM'
+          : Math.random() < 0.7 ? 'LOW' : 'MEDIUM';
+        const createdAt = new Date(day);
+        createdAt.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
+        const user = users[Math.floor(Math.random() * users.length)];
+        rows.push({ placeId: place.id, userId: user.id, level, createdAt });
+      }
+    }
+  }
+
+  if (rows.length) {
+    await prisma.occupancyCheckIn.createMany({ data: rows });
+  }
+}
+
 const PLACES = [
   {
     name: 'Kaleiçi Konak Otel Lobisi',
@@ -168,7 +222,7 @@ async function main() {
     },
   });
 
-  await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: 'admin@workfromhotel.com' },
     update: {},
     create: {
@@ -178,13 +232,21 @@ async function main() {
       role: 'ADMIN',
     },
   });
+  const occupancySeedUsers = [demoUser, adminUser];
 
   for (const placeData of PLACES) {
+    const hours = DEFAULT_HOURS_BY_TYPE[placeData.type] ?? {};
     const existing = await prisma.place.findFirst({ where: { name: placeData.name } });
-    if (existing) continue;
+    if (existing) {
+      if (existing.openTime === null && existing.closeTime === null) {
+        await prisma.place.update({ where: { id: existing.id }, data: hours });
+      }
+      await seedOccupancyHistory(existing, occupancySeedUsers);
+      continue;
+    }
 
     const place = await prisma.place.create({
-      data: { ...placeData, createdById: demoUser.id },
+      data: { ...placeData, ...hours, createdById: demoUser.id },
     });
 
     await prisma.review.create({
@@ -201,6 +263,8 @@ async function main() {
         comment: 'Başlangıç için eklenen örnek değerlendirme.',
       },
     });
+
+    await seedOccupancyHistory(place, occupancySeedUsers);
   }
 
   console.log('Seed verisi başarıyla yüklendi.');

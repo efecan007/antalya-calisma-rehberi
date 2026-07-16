@@ -222,6 +222,8 @@ class PlacesService {
     noiseLevel,
     deskFriendly,
     openingHours,
+    openTime,
+    closeTime,
     hasWifi,
     hasAC,
     meetingSuitable,
@@ -251,6 +253,8 @@ class PlacesService {
       noiseLevel: noiseLevel ?? 'MEDIUM',
       deskFriendly: deskFriendly ?? true,
       openingHours: openingHours || null,
+      openTime: openTime || null,
+      closeTime: closeTime || null,
       hasWifi: hasWifi ?? true,
       hasAC: hasAC ?? true,
       meetingSuitable: meetingSuitable ?? false,
@@ -296,6 +300,8 @@ class PlacesService {
     if (changes.noiseLevel !== undefined) data.noiseLevel = changes.noiseLevel;
     if (changes.deskFriendly !== undefined) data.deskFriendly = changes.deskFriendly;
     if (changes.openingHours !== undefined) data.openingHours = changes.openingHours || null;
+    if (changes.openTime !== undefined) data.openTime = changes.openTime || null;
+    if (changes.closeTime !== undefined) data.closeTime = changes.closeTime || null;
     if (changes.hasWifi !== undefined) data.hasWifi = changes.hasWifi;
     if (changes.hasAC !== undefined) data.hasAC = changes.hasAC;
     if (changes.meetingSuitable !== undefined) data.meetingSuitable = changes.meetingSuitable;

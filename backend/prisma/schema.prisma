@@ -79,6 +79,8 @@ model Place {
   noiseLevel      LevelRating @default(MEDIUM) @map("quietness_level")
   deskFriendly    Boolean     @default(true) @map("is_desk_friendly")
   openingHours    String?     @map("working_hours")
+  openTime        String?     @map("open_time")
+  closeTime       String?     @map("close_time")
   hasWifi         Boolean     @default(true) @map("has_wifi")
   hasAC           Boolean     @default(true) @map("has_air_conditioning")
   meetingSuitable Boolean     @default(false) @map("is_meeting_friendly")
