@@ -1,3 +1,4 @@
+const multer = require('multer');
 const { DomainError } = require('../errors');
 
 function notFoundHandler(req, res) {
@@ -7,6 +8,10 @@ function notFoundHandler(req, res) {
 function errorMiddleware(err, req, res, _next) {
   if (err instanceof DomainError) {
     return res.status(err.status).json({ message: err.message });
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: `Dosya yüklenemedi: ${err.message}` });
   }
 
   console.error(err);

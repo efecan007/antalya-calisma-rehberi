@@ -6,6 +6,8 @@ import { regionLabel, typeLabel, levelLabel, noiseLevelLabel, RATING_CRITERIA } 
 import RatingStars from '../components/RatingStars';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
+import CommentList from '../components/CommentList';
+import CommentForm from '../components/CommentForm';
 import FavoriteButton from '../components/FavoriteButton';
 import OccupancyCheckIn from '../components/OccupancyCheckIn';
 import OccupancyForecast from '../components/OccupancyForecast';
@@ -31,6 +33,7 @@ export default function PlaceDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const [place, setPlace] = useState(null);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const { coords, error: geoError, loading: geoLoading, request: requestLocation } = useGeolocation();
 
@@ -42,8 +45,13 @@ export default function PlaceDetailPage() {
       .finally(() => setLoading(false));
   }
 
+  function fetchComments() {
+    apiClient.get(`/places/${id}/comments`).then(({ data }) => setComments(data));
+  }
+
   useEffect(() => {
     fetchPlace();
+    fetchComments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -185,6 +193,24 @@ export default function PlaceDetailPage() {
               <p className="text-sm text-gray-500">Bu mekan için zaten bir değerlendirme yaptınız.</p>
             )}
             {user && !alreadyReviewed && <ReviewForm placeId={place.id} onSubmitted={fetchPlace} />}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-card p-5 sm:p-6 mt-4">
+          <h2 className="font-medium text-gray-900 mb-3">Yorumlar</h2>
+          <CommentList comments={comments} onChanged={fetchComments} />
+
+          <div className="mt-6">
+            {!user && (
+              <p className="text-sm text-gray-500">
+                Yorum yapmak için{' '}
+                <Link to="/giris" className="text-brand-600 hover:underline">
+                  giriş yapın
+                </Link>
+                .
+              </p>
+            )}
+            {user && <CommentForm placeId={place.id} onSubmitted={fetchComments} />}
           </div>
         </div>
 

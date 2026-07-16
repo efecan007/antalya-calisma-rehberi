@@ -47,6 +47,8 @@ services:
       LINKEDIN_REDIRECT_URI: ${LINKEDIN_REDIRECT_URI:-http://localhost:8080/api/auth/linkedin/callback}
     ports:
       - "4000:4000"
+    volumes:
+      - backend_uploads:/app/uploads
 
   frontend:
     build: ./frontend
@@ -58,3 +60,4 @@ services:
 
 volumes:
   db_data:
+  backend_uploads:
