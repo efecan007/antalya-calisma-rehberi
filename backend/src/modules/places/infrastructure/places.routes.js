@@ -12,6 +12,8 @@ const {
 const { requireAuth, requireAdmin, optionalAuth } = require('../../../common/guards/auth.guard');
 const { createReview, listReviews } = require('../../reviews/infrastructure/reviews.controller');
 const { sendMessage, listMessages } = require('../../chat/infrastructure/chat.controller');
+const { createComment, listComments } = require('../../comments/infrastructure/comments.controller');
+const { commentPhotoUpload } = require('../../comments/infrastructure/upload.middleware');
 
 const router = Router();
 
@@ -30,5 +32,7 @@ router.post('/:id/reviews', requireAuth, createReview);
 router.get('/:id/reviews', listReviews);
 router.post('/:id/messages', requireAuth, sendMessage);
 router.get('/:id/messages', requireAuth, listMessages);
+router.post('/:id/comments', requireAuth, commentPhotoUpload, createComment);
+router.get('/:id/comments', optionalAuth, listComments);
 
 module.exports = router;

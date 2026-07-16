@@ -20,17 +20,19 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [reportedComments, setReportedComments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
     setLoading(true);
-    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes, messagesRes] = await Promise.all([
+    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes, messagesRes, reportedRes] = await Promise.all([
       apiClient.get('/admin/dashboard'),
       apiClient.get('/places'),
       apiClient.get('/admin/suggestions'),
       apiClient.get('/reviews'),
       apiClient.get('/admin/users'),
       apiClient.get('/messages'),
+      apiClient.get('/admin/comments/reports'),
     ]);
     setStats(statsRes.data);
     setPlaces(placesRes.data);
@@ -38,6 +40,7 @@ export default function AdminPage() {
     setReviews(reviewsRes.data);
     setUsers(usersRes.data);
     setMessages(messagesRes.data);
+    setReportedComments(reportedRes.data);
     setLoading(false);
   }
 
@@ -75,6 +78,17 @@ export default function AdminPage() {
   async function deleteMessage(id) {
     if (!window.confirm('Bu mesajı silmek istediğinize emin misiniz?')) return;
     await apiClient.delete(`/messages/${id}`);
+    loadAll();
+  }
+
+  async function deleteComment(id) {
+    if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+    await apiClient.delete(`/comments/${id}`);
+    loadAll();
+  }
+
+  async function dismissReports(id) {
+    await apiClient.patch(`/admin/comments/${id}/dismiss-reports`);
     loadAll();
   }
 
@@ -210,6 +224,47 @@ export default function AdminPage() {
                   Sil
                 </button>
               )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="font-medium text-gray-900 mb-3">Şüpheli Yorumlar ({reportedComments.length})</h2>
+        {reportedComments.length === 0 && <p className="text-sm text-gray-500">Raporlanmış yorum yok.</p>}
+        <div className="space-y-2">
+          {reportedComments.map((comment) => (
+            <div key={comment.id} className="bg-white shadow-card rounded-xl p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-gray-900">
+                  <span className="font-medium">{comment.user?.name}</span> ·{' '}
+                  <span className="text-gray-500">{comment.place?.name}</span> ·{' '}
+                  <span className="text-red-600">{comment.reportCount} rapor</span>
+                </p>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => dismissReports(comment.id)}
+                    className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full transition hover:bg-gray-200"
+                  >
+                    Raporları Yoksay
+                  </button>
+                  <button
+                    onClick={() => deleteComment(comment.id)}
+                    className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
+                  >
+                    Yorumu Sil
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">{comment.content}</p>
+              <div className="mt-1 space-y-0.5">
+                {comment.reports?.map((report) => (
+                  <p key={report.id} className="text-xs text-gray-400">
+                    Raporlayan: {report.user?.name}
+                    {report.reason && ` · Sebep: ${report.reason}`}
+                  </p>
+                ))}
+              </div>
             </div>
           ))}
         </div>
