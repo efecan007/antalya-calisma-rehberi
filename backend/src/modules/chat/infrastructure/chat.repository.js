@@ -41,6 +41,16 @@ class PrismaMessageRepository extends MessageRepository {
     return this.prisma.placeMessage.findUnique({ where: { id } });
   }
 
+  // "Cevap geldi" bildirimi için basit bir yaklaşım: sohbet konu bazlı
+  // (thread'siz) olduğundan, yeni mesajdan hemen önceki farklı kullanıcıya
+  // ait mesajı "kime cevap verildiği" kabul ediyoruz.
+  async findLastByPlaceExcludingUser(placeId, excludeUserId, beforeId) {
+    return this.prisma.placeMessage.findFirst({
+      where: { placeId, id: { lt: beforeId }, userId: { not: excludeUserId } },
+      orderBy: { id: 'desc' },
+    });
+  }
+
   // Moderasyon ekranı için: tüm mekanlardaki mesajlar, en yeniden eskiye.
   async findAll() {
     return this.prisma.placeMessage.findMany({

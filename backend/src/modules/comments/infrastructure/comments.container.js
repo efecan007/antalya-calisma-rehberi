@@ -6,10 +6,11 @@
 const prisma = require('../../../database/prisma.client');
 const cache = require('../../cache/cache.service');
 const { placeRepository } = require('../../places/infrastructure/places.container');
+const { notificationsService } = require('../../notifications/infrastructure/notifications.container');
 const CommentsRepository = require('./comments.repository');
 const CommentsService = require('../application/comments.service');
 
 const commentRepository = new CommentsRepository(prisma);
-const commentsService = new CommentsService({ commentRepository, placeRepository, cache });
+const commentsService = new CommentsService({ commentRepository, placeRepository, cache, notificationsService });
 
 module.exports = { commentRepository, commentsService };

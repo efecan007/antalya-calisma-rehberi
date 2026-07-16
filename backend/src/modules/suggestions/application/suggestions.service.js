@@ -2,10 +2,11 @@ const { NotFoundError } = require('../../../common/errors');
 const { invalidatePlaceListCaches, invalidatePlaceDetailCache } = require('../../cache/place-cache-keys');
 
 class SuggestionsService {
-  constructor({ placeRepository, cache, placesService }) {
+  constructor({ placeRepository, cache, placesService, notificationsService }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
     this.placesService = placesService;
+    this.notificationsService = notificationsService;
   }
 
   async submit({ createdById, ...placeData }) {
@@ -34,6 +35,15 @@ class SuggestionsService {
     await invalidatePlaceDetailCache(this.cache, id);
     await invalidatePlaceListCaches(this.cache);
 
+    if (place.createdById && this.notificationsService) {
+      await this.notificationsService.notify({
+        userId: place.createdById,
+        type: 'SUGGESTION_APPROVED',
+        message: `"${updated.name}" mekan önerin onaylandı!`,
+        placeId: id,
+      });
+    }
+
     return updated.toJSON();
   }
 
@@ -47,6 +57,15 @@ class SuggestionsService {
 
     await invalidatePlaceDetailCache(this.cache, id);
     await invalidatePlaceListCaches(this.cache);
+
+    if (place.createdById && this.notificationsService) {
+      await this.notificationsService.notify({
+        userId: place.createdById,
+        type: 'SUGGESTION_REJECTED',
+        message: `"${updated.name}" mekan önerin reddedildi.`,
+        placeId: id,
+      });
+    }
 
     return updated.toJSON();
   }

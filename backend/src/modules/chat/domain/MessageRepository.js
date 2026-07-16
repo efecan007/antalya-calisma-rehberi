@@ -11,6 +11,10 @@ class MessageRepository {
     throw new Error('Not implemented');
   }
 
+  async findLastByPlaceExcludingUser(_placeId, _excludeUserId, _beforeId) {
+    throw new Error('Not implemented');
+  }
+
   async findAll() {
     throw new Error('Not implemented');
   }

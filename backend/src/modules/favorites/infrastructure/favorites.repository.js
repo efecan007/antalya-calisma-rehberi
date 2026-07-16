@@ -27,6 +27,14 @@ class FavoritesRepository extends FavoriteRepository {
     });
     return favorites.map((f) => new Place(f.place));
   }
+
+  async findUserIdsByPlace(placeId) {
+    const favorites = await this.prisma.favorite.findMany({
+      where: { placeId },
+      select: { userId: true },
+    });
+    return favorites.map((f) => f.userId);
+  }
 }
 
 module.exports = FavoritesRepository;

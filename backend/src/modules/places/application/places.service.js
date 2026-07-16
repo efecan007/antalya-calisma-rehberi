@@ -49,10 +49,12 @@ function assertValidPriceLevel(priceLevel) {
 }
 
 class PlacesService {
-  constructor({ placeRepository, cache, occupancyService }) {
+  constructor({ placeRepository, cache, occupancyService, favoriteRepository, notificationsService }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
     this.occupancyService = occupancyService;
+    this.favoriteRepository = favoriteRepository;
+    this.notificationsService = notificationsService;
   }
 
   // Doluluk bilgisi dakikalar içinde bayatlar, bu yüzden place list/detail
@@ -311,6 +313,16 @@ class PlacesService {
 
     await invalidatePlaceDetailCache(this.cache, id);
     await invalidatePlaceListCaches(this.cache);
+
+    if (this.favoriteRepository && this.notificationsService) {
+      const favoriteUserIds = await this.favoriteRepository.findUserIdsByPlace(id);
+      await this.notificationsService.notifyMany({
+        userIds: favoriteUserIds,
+        type: 'FAVORITE_PLACE_UPDATED',
+        message: `Favorindeki "${updated.name}" mekanının bilgileri güncellendi.`,
+        placeId: id,
+      });
+    }
 
     return updated.toJSON();
   }

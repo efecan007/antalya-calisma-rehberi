@@ -12,6 +12,7 @@ const chatRoutes = require('./modules/chat/infrastructure/chat.routes');
 const suggestionsRoutes = require('./modules/suggestions/infrastructure/suggestions.routes');
 const adminRoutes = require('./modules/admin/infrastructure/admin.routes');
 const commentsRoutes = require('./modules/comments/infrastructure/comments.routes');
+const notificationsRoutes = require('./modules/notifications/infrastructure/notifications.routes');
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./common/filters/error.filter');
 const { generalLimiter } = require('./common/guards/rate-limit.guard');
@@ -35,6 +36,7 @@ function createApp() {
   app.use('/api/suggestions', suggestionsRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/comments', commentsRoutes);
+  app.use('/api/notifications', notificationsRoutes);
 
   app.use(notFoundHandler);
   app.use(errorMiddleware);

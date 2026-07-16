@@ -4,9 +4,10 @@ const MAX_MESSAGE_LENGTH = 1000;
 const DEFAULT_PAGE_SIZE = 50;
 
 class ChatService {
-  constructor({ messageRepository, placeRepository }) {
+  constructor({ messageRepository, placeRepository, notificationsService }) {
     this.messageRepository = messageRepository;
     this.placeRepository = placeRepository;
+    this.notificationsService = notificationsService;
   }
 
   async sendMessage({ placeId, userId, content }) {
@@ -23,7 +24,21 @@ class ChatService {
       throw new NotFoundError('Mekan bulunamadı');
     }
 
-    return this.messageRepository.create({ placeId, userId, content: trimmed });
+    const message = await this.messageRepository.create({ placeId, userId, content: trimmed });
+
+    // Sohbet thread'siz olduğu için "cevap" kavramını, kendisinden önceki
+    // farklı kullanıcıya ait en güncel mesaj üzerinden yaklaşık olarak tespit ediyoruz.
+    const repliedTo = await this.messageRepository.findLastByPlaceExcludingUser(placeId, userId, message.id);
+    if (repliedTo && this.notificationsService) {
+      await this.notificationsService.notify({
+        userId: repliedTo.userId,
+        type: 'CHAT_REPLY',
+        message: `"${place.name}" sohbetinde sana bir cevap geldi.`,
+        placeId,
+      });
+    }
+
+    return message;
   }
 
   async listMessages({ placeId, afterId }) {

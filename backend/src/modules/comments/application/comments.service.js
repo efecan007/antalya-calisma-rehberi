@@ -14,10 +14,11 @@ function assertValidContent(content) {
 }
 
 class CommentsService {
-  constructor({ commentRepository, placeRepository, cache }) {
+  constructor({ commentRepository, placeRepository, cache, notificationsService }) {
     this.commentRepository = commentRepository;
     this.placeRepository = placeRepository;
     this.cache = cache;
+    this.notificationsService = notificationsService;
   }
 
   async listByPlace({ placeId, viewerId }) {
@@ -78,6 +79,17 @@ class CommentsService {
 
     await this.commentRepository.delete(commentId);
     await invalidatePlaceDetailCache(this.cache, comment.placeId);
+
+    // Kullanıcı kendi yorumunu sildiğinde bildirime gerek yok; yalnızca
+    // başkası (admin) sildiğinde yorum sahibine haber veriyoruz.
+    if (comment.userId !== userId && this.notificationsService) {
+      await this.notificationsService.notify({
+        userId: comment.userId,
+        type: 'COMMENT_DELETED',
+        message: 'Bir yorumun yönetici tarafından silindi.',
+        placeId: comment.placeId,
+      });
+    }
   }
 
   async toggleHelpful({ commentId, userId }) {
@@ -125,6 +137,15 @@ class CommentsService {
     }
 
     await this.commentRepository.createReport({ commentId, userId, reason: reason || null });
+
+    if (this.notificationsService) {
+      await this.notificationsService.notify({
+        userId: comment.userId,
+        type: 'COMMENT_REPORTED',
+        message: 'Bir yorumun şüpheli olarak raporlandı.',
+        placeId: comment.placeId,
+      });
+    }
   }
 
   async listReportedComments() {

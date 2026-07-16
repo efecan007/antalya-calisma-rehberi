@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const linkClass = ({ isActive }) =>
   `px-1 py-1 text-sm transition ${isActive ? 'text-brand-700 font-medium' : 'text-gray-600 hover:text-brand-700'}`;
@@ -56,6 +57,7 @@ export default function Navbar() {
               <NavLink to="/profil" className={linkClass}>
                 {user.name}
               </NavLink>
+              <NotificationBell />
               <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-brand-700 transition">
                 Çıkış
               </button>
@@ -121,6 +123,9 @@ export default function Navbar() {
               <NavLink to="/profil" className={linkClass} onClick={closeMenu}>
                 {user.name}
               </NavLink>
+              <div className="py-1">
+                <NotificationBell />
+              </div>
               <button onClick={handleLogout} className="text-left text-sm text-gray-600 hover:text-brand-700 py-1">
                 Çıkış
               </button>

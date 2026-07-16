@@ -47,6 +47,16 @@ enum CommentReportStatus {
   DISMISSED
 }
 
+enum NotificationType {
+  SUGGESTION_APPROVED
+  SUGGESTION_REJECTED
+  FAVORITE_PLACE_UPDATED
+  COMMENT_REPORTED
+  COMMENT_DELETED
+  FAVORITE_LOW_OCCUPANCY
+  CHAT_REPLY
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -67,6 +77,7 @@ model User {
   comments            Comment[]
   commentHelpfulVotes CommentHelpfulVote[]
   commentReports      CommentReport[]
+  notifications       Notification[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -104,6 +115,7 @@ model Place {
   occupancyCheckIns OccupancyCheckIn[]
   messages          PlaceMessage[]
   comments          Comment[]
+  notifications     Notification[]
 
   @@map("places")
 }
@@ -197,6 +209,22 @@ model CommentReport {
 
   @@unique([commentId, userId])
   @@map("comment_reports")
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int              @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  message   String
+  placeId   Int?             @map("place_id")
+  place     Place?           @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([userId, type, placeId, createdAt])
+  @@map("notifications")
 }
 
 model PlaceMessage {
