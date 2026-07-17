@@ -1,6 +1,4 @@
-const { Server } = require('socket.io');
 const { verifyToken } = require('../../../common/security/jwt');
-const { parseCorsOrigin } = require('../../../common/security/cors-origin');
 
 // Sabit oda listesi: her oda kendi yayın slotuna sahiptir, aynı anda her odada
 // yalnızca bir kişi yayın yapabilir, herkes (misafir dahil) izleyebilir.
@@ -9,12 +7,7 @@ const { parseCorsOrigin } = require('../../../common/security/cors-origin');
 // peer-to-peer) gerçekleşir.
 const ROOM_IDS = ['oda-1', 'oda-2', 'oda-3'];
 
-function attachStreamingGateway(httpServer) {
-  const io = new Server(httpServer, {
-    path: '/socket.io',
-    cors: { origin: parseCorsOrigin(process.env.CORS_ORIGIN) },
-  });
-
+function attachStreamingGateway(io) {
   const broadcasters = new Map(); // roomId -> { socketId, userId }
 
   function currentStatus(roomId) {
@@ -84,8 +77,6 @@ function attachStreamingGateway(httpServer) {
       }
     });
   });
-
-  return io;
 }
 
 module.exports = { attachStreamingGateway, ROOM_IDS };

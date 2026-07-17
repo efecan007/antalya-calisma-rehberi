@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { getSocket } from '../lib/socket';
 
 const POLL_INTERVAL_MS = 5000;
+const TYPING_STOP_DELAY_MS = 2000;
+// Karşı taraf "yazmayı bıraktı" olayını kaçırırsa (sekme kapanması, ağ kopması vb.)
+// gösterge kalıcı olarak takılı kalmasın diye belli bir süre sonra kendiliğinden kaybolur.
+const TYPING_EXPIRE_MS = 4000;
 
 export default function PlaceChat({ placeId }) {
   const { user } = useAuth();
@@ -12,8 +17,12 @@ export default function PlaceChat({ placeId }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [typingUserIds, setTypingUserIds] = useState(() => new Set());
   const lastIdRef = useRef(null);
   const listRef = useRef(null);
+  const isTypingRef = useRef(false);
+  const typingStopTimerRef = useRef(null);
+  const typingExpireTimersRef = useRef(new Map());
 
   useEffect(() => {
     if (!user) {
@@ -53,12 +62,88 @@ export default function PlaceChat({ placeId }) {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, typingUserIds]);
+
+  useEffect(() => {
+    if (!user) return undefined;
+
+    const socket = getSocket();
+    socket.connect();
+    socket.emit('chat:join', { placeId });
+
+    function clearExpireTimer(userId) {
+      const timer = typingExpireTimersRef.current.get(userId);
+      if (timer) {
+        clearTimeout(timer);
+        typingExpireTimersRef.current.delete(userId);
+      }
+    }
+
+    function handleTyping({ placeId: eventPlaceId, userId, isTyping }) {
+      if (eventPlaceId !== placeId || userId === user.id) return;
+
+      clearExpireTimer(userId);
+
+      if (isTyping) {
+        setTypingUserIds((prev) => new Set(prev).add(userId));
+        typingExpireTimersRef.current.set(
+          userId,
+          setTimeout(() => {
+            setTypingUserIds((prev) => {
+              const next = new Set(prev);
+              next.delete(userId);
+              return next;
+            });
+            typingExpireTimersRef.current.delete(userId);
+          }, TYPING_EXPIRE_MS)
+        );
+      } else {
+        setTypingUserIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      }
+    }
+
+    socket.on('chat:typing', handleTyping);
+
+    return () => {
+      socket.off('chat:typing', handleTyping);
+      socket.emit('chat:leave', { placeId });
+      clearTimeout(typingStopTimerRef.current);
+      typingExpireTimersRef.current.forEach(clearTimeout);
+      typingExpireTimersRef.current.clear();
+      setTypingUserIds(new Set());
+      socket.disconnect();
+    };
+  }, [placeId, user]);
+
+  function emitTyping(isTyping) {
+    if (isTypingRef.current === isTyping) return;
+    isTypingRef.current = isTyping;
+    getSocket().emit('chat:typing', { placeId, token: localStorage.getItem('wfh_token'), isTyping });
+  }
+
+  function handleTextChange(value) {
+    setText(value);
+    clearTimeout(typingStopTimerRef.current);
+
+    if (value.trim()) {
+      emitTyping(true);
+      typingStopTimerRef.current = setTimeout(() => emitTyping(false), TYPING_STOP_DELAY_MS);
+    } else {
+      emitTyping(false);
+    }
+  }
 
   async function submit(e) {
     e.preventDefault();
     const content = text.trim();
     if (!content) return;
+
+    clearTimeout(typingStopTimerRef.current);
+    emitTyping(false);
 
     setSending(true);
     setError('');
@@ -98,13 +183,20 @@ export default function PlaceChat({ placeId }) {
                 </div>
               );
             })}
+            {typingUserIds.size > 0 && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-lg px-3 py-1.5 text-sm bg-white border border-gray-200 text-gray-500">
+                  ...
+                </div>
+              </div>
+            )}
           </div>
 
           <form onSubmit={submit} className="flex gap-2 mt-3">
             <input
               type="text"
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => handleTextChange(e.target.value)}
               maxLength={1000}
               placeholder="Bir mesaj yaz..."
               className="flex-1 min-w-0 border border-gray-200 rounded-md px-3 py-1.5 text-sm"
