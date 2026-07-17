@@ -34,13 +34,21 @@ class AuthService {
     }
 
     const existing = await this.userRepository.findByEmail(normalizedEmail);
-    if (existing) {
-      throw new ConflictError('Bu e-posta ile kayıtlı bir kullanıcı zaten var');
-    }
-
     const passwordHash = await this.hashPassword(password);
-    const created = await this.userRepository.create({ email: normalizedEmail, passwordHash, name: name.trim() });
-    const user = created instanceof User ? created : new User(created);
+
+    let user;
+    if (existing) {
+      // OAuth (LinkedIn/Google) ile açılmış ama şifresiz bir hesap varsa,
+      // aynı hesaba şifre ekleriz; ikinci bir hesap oluşturmayız.
+      if (existing.passwordHash) {
+        throw new ConflictError('Bu e-posta ile kayıtlı bir kullanıcı zaten var');
+      }
+      const updated = await this.userRepository.update(existing.id, { passwordHash });
+      user = updated instanceof User ? updated : new User(updated);
+    } else {
+      const created = await this.userRepository.create({ email: normalizedEmail, passwordHash, name: name.trim() });
+      user = created instanceof User ? created : new User(created);
+    }
 
     const token = this.signToken({ id: user.id, role: user.role });
     return { token, user: user.toPublicJSON() };
