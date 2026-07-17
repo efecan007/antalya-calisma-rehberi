@@ -7,6 +7,11 @@ const google = require('./google.client');
 
 const authService = new AuthService({ userRepository, hashPassword, comparePassword, signToken });
 
+function getFrontendUrl() {
+  const origins = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  return origins.split(',')[0].trim();
+}
+
 async function register(req, res, next) {
   try {
     const result = await authService.register(req.body);
@@ -45,7 +50,7 @@ function linkedinRedirect(_req, res) {
 }
 
 async function linkedinCallback(req, res) {
-  const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  const frontendUrl = getFrontendUrl();
   try {
     const { code, state, error } = req.query;
     if (error || !code || !state) {
@@ -71,7 +76,7 @@ function googleRedirect(_req, res) {
 }
 
 async function googleCallback(req, res) {
-  const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  const frontendUrl = getFrontendUrl();
   try {
     const { code, state, error } = req.query;
     if (error || !code || !state) {
