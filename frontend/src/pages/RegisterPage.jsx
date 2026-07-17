@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LinkedInLoginButton from '../components/LinkedInLoginButton';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -69,6 +70,7 @@ export default function RegisterPage() {
           <div className="h-px flex-1 bg-gray-200" />
         </div>
         <LinkedInLoginButton />
+        <GoogleLoginButton />
         <p className="text-sm text-gray-500 text-center">
           Zaten hesabın var mı?{' '}
           <Link to="/giris" className="text-brand-600 hover:underline">
