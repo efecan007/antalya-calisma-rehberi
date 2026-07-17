@@ -4,7 +4,29 @@ import { useAuth } from '../context/AuthContext';
 import { getSocket } from '../lib/socket';
 import { ROOMS, getRoomName } from '../lib/rooms';
 
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+// STUN tek başına yalnızca aynı ağdaki (LAN) bağlantılar için yeterlidir; farklı ağlardaki
+// (ör. biri mobil veri, biri farklı wifi) taraflar arasında simetrik NAT'lar STUN ile
+// aşılamayabilir, bu yüzden trafiği aktarabilecek bir TURN sunucusu da gerekir. Metered'in
+// ücretsiz Open Relay TURN sunucusu geliştirme/test amaçlı kullanılıyor; üretimde kendi
+// TURN sunucunuzu (ör. coturn) veya ücretli bir TURN sağlayıcısını kullanmanız önerilir.
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+];
 
 export default function StreamPage() {
   const { roomId } = useParams();
