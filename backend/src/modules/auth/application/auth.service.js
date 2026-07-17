@@ -21,7 +21,7 @@ class AuthService {
     this.signToken = signToken;
   }
 
-  async register({ email, password, name }) {
+  async register({ email, password, name, companyName }) {
     if (!email || !password || !name) {
       throw new ValidationError('email, password ve name zorunludur');
     }
@@ -32,6 +32,7 @@ class AuthService {
     if (password.length < MIN_PASSWORD_LENGTH) {
       throw new ValidationError(`Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalıdır`);
     }
+    const trimmedCompanyName = companyName?.trim() || null;
 
     const existing = await this.userRepository.findByEmail(normalizedEmail);
     const passwordHash = await this.hashPassword(password);
@@ -43,10 +44,18 @@ class AuthService {
       if (existing.passwordHash) {
         throw new ConflictError('Bu e-posta ile kayıtlı bir kullanıcı zaten var');
       }
-      const updated = await this.userRepository.update(existing.id, { passwordHash });
+      const updated = await this.userRepository.update(existing.id, {
+        passwordHash,
+        ...(trimmedCompanyName ? { companyName: trimmedCompanyName } : {}),
+      });
       user = updated instanceof User ? updated : new User(updated);
     } else {
-      const created = await this.userRepository.create({ email: normalizedEmail, passwordHash, name: name.trim() });
+      const created = await this.userRepository.create({
+        email: normalizedEmail,
+        passwordHash,
+        name: name.trim(),
+        companyName: trimmedCompanyName,
+      });
       user = created instanceof User ? created : new User(created);
     }
 

@@ -62,6 +62,7 @@ model User {
   email        String   @unique
   passwordHash String?  @map("password_hash")
   name         String   @map("full_name")
+  companyName  String?  @map("company_name")
   role         Role     @default(USER)
   provider     String   @default("local")
   providerId   String?  @map("provider_id")

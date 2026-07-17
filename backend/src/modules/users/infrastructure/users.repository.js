@@ -17,9 +17,9 @@ class UsersRepository extends UserRepository {
     return record ? new User(record) : null;
   }
 
-  async create({ email, passwordHash, name, provider, providerId, avatarUrl }) {
+  async create({ email, passwordHash, name, companyName, provider, providerId, avatarUrl }) {
     const record = await this.prisma.user.create({
-      data: { email, passwordHash, name, provider, providerId, avatarUrl },
+      data: { email, passwordHash, name, companyName, provider, providerId, avatarUrl },
     });
     return new User(record);
   }

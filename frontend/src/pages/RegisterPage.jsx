@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +19,7 @@ export default function RegisterPage() {
     setSubmitting(true);
     setError('');
     try {
-      await register(email, password, name);
+      await register(email, password, name, companyName);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Kayıt başarısız');
@@ -38,6 +39,13 @@ export default function RegisterPage() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+        />
+        <input
+          type="text"
+          placeholder="Şirket İsmi (opsiyonel)"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
           className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <input

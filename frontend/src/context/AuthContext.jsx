@@ -34,8 +34,8 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
-  async function register(email, password, name) {
-    const { data } = await apiClient.post('/auth/register', { email, password, name });
+  async function register(email, password, name, companyName) {
+    const { data } = await apiClient.post('/auth/register', { email, password, name, companyName });
     localStorage.setItem('wfh_token', data.token);
     setUser(data.user);
   }

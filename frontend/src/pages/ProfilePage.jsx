@@ -12,6 +12,11 @@ export default function ProfilePage() {
         <p>
           <span className="text-gray-500">Ad Soyad:</span> {user.name}
         </p>
+        {user.companyName && (
+          <p>
+            <span className="text-gray-500">Şirket:</span> {user.companyName}
+          </p>
+        )}
         <p>
           <span className="text-gray-500">E-posta:</span> {user.email}
         </p>
