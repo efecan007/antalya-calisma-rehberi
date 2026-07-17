@@ -14,14 +14,16 @@ const { createReview, listReviews } = require('../../reviews/infrastructure/revi
 const { sendMessage, listMessages } = require('../../chat/infrastructure/chat.controller');
 const { createComment, listComments } = require('../../comments/infrastructure/comments.controller');
 const { commentPhotoUpload } = require('../../comments/infrastructure/upload.middleware');
+const { searchGeocode } = require('./geocode.controller');
 
 const router = Router();
 
-// Sabit path'ler (/popular, /top-rated, /recommendations) `/:id` route'undan
+// Sabit path'ler (/popular, /top-rated, /recommendations, /geocode/search) `/:id` route'undan
 // önce tanımlanmalı, aksi halde Express bunları :id parametresi sanır.
 router.get('/popular', popularPlaces);
 router.get('/top-rated', topRatedPlaces);
 router.get('/recommendations', recommendations);
+router.get('/geocode/search', requireAuth, searchGeocode);
 
 router.get('/', listPlaces);
 router.get('/:id', optionalAuth, getPlace);

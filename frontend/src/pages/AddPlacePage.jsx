@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -35,6 +35,11 @@ export default function AddPlacePage() {
   const [submitting, setSubmitting] = useState(false);
   const [suggested, setSuggested] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [geoQuery, setGeoQuery] = useState('');
+  const [geoResults, setGeoResults] = useState([]);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState('');
+  const geoDebounceRef = useRef(null);
   const navigate = useNavigate();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -68,6 +73,37 @@ export default function AddPlacePage() {
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleGeoQueryChange(value) {
+    setGeoQuery(value);
+    setGeoResults([]);
+    setGeoError('');
+    if (geoDebounceRef.current) clearTimeout(geoDebounceRef.current);
+    if (value.trim().length < 3) return;
+    geoDebounceRef.current = setTimeout(async () => {
+      setGeoLoading(true);
+      try {
+        const { data } = await apiClient.get('/places/geocode/search', { params: { q: value } });
+        setGeoResults(data);
+      } catch {
+        setGeoError('Arama başarısız oldu');
+      } finally {
+        setGeoLoading(false);
+      }
+    }, 500);
+  }
+
+  function applyGeoResult(result) {
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || result.name,
+      address: result.address,
+      lat: result.lat,
+      lng: result.lng,
+    }));
+    setGeoResults([]);
+    setGeoQuery('');
   }
 
   async function handleSubmit(e) {
@@ -128,6 +164,41 @@ export default function AddPlacePage() {
         </p>
       )}
       {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+      {!isEdit && (
+        <div className="mb-4 relative">
+          <label className="block text-sm text-gray-700 mb-1">
+            Haritadan mekan ara (OpenStreetMap)
+          </label>
+          <input
+            type="text"
+            placeholder="Mekan adı veya adres yazın..."
+            value={geoQuery}
+            onChange={(e) => handleGeoQueryChange(e.target.value)}
+            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+          />
+          {geoLoading && <p className="text-xs text-gray-400 mt-1">Aranıyor...</p>}
+          {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
+          {geoResults.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-card mt-1 max-h-56 overflow-y-auto">
+              {geoResults.map((r, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onClick={() => applyGeoResult(r)}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                  >
+                    <span className="block font-medium text-gray-900">{r.name}</span>
+                    <span className="block text-xs text-gray-500">{r.address}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-xs text-gray-400 mt-1">
+            Sonuca tıklayınca adres ve koordinatlar aşağıya otomatik doldurulur.
+          </p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
