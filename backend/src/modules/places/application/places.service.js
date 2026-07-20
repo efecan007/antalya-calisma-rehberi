@@ -49,12 +49,44 @@ function assertValidPriceLevel(priceLevel) {
 }
 
 class PlacesService {
-  constructor({ placeRepository, cache, occupancyService, favoriteRepository, notificationsService }) {
+  constructor({
+    placeRepository,
+    cache,
+    occupancyService,
+    favoriteRepository,
+    notificationsService,
+    placeEnrichmentService,
+  }) {
     this.placeRepository = placeRepository;
     this.cache = cache;
     this.occupancyService = occupancyService;
     this.favoriteRepository = favoriteRepository;
     this.notificationsService = notificationsService;
+    this.placeEnrichmentService = placeEnrichmentService;
+  }
+
+  // Google Places'ten gelen alanlar (varsa) mevcut veriyi ekrana yansıyan alanlarda
+  // (isim/adres/koordinat/çalışma saatleri) günceller; sağlayıcı bir alanı döndürmezse
+  // mevcut veri aynen kalır — hiçbir alan boş gösterilmez. Telefon/web sitesi/
+  // kategori DB'de hiç yoktu, yalnızca sağlayıcıdan gelirse eklenir (yoksa undefined
+  // kalır, frontend zaten yalnızca değer varsa gösterir).
+  async _attachPlaceDetails(place) {
+    if (!this.placeEnrichmentService) return place;
+
+    const details = await this.placeEnrichmentService.enrich(place);
+    if (!details) return place;
+
+    return {
+      ...place,
+      name: details.name || place.name,
+      address: details.address || place.address,
+      lat: details.lat ?? place.lat,
+      lng: details.lng ?? place.lng,
+      openingHours: details.openingHours || place.openingHours,
+      phone: details.phone || null,
+      website: details.website || null,
+      externalCategory: details.category || null,
+    };
   }
 
   // Doluluk bilgisi dakikalar içinde bayatlar, bu yüzden place list/detail
@@ -205,7 +237,7 @@ class PlacesService {
     }
 
     const [withOccupancy] = await this._attachOccupancy([result]);
-    return withOccupancy;
+    return this._attachPlaceDetails(withOccupancy);
   }
 
   async createPlace({

@@ -151,6 +151,29 @@ export default function PlaceDetailPage() {
             </p>
           )}
 
+          {place.phone && (
+            <p className="mt-2 text-sm text-gray-600">
+              <span className="text-gray-500">Telefon:</span>{' '}
+              <a href={`tel:${place.phone}`} className="text-brand-600 hover:underline">
+                {place.phone}
+              </a>
+            </p>
+          )}
+
+          {place.website && (
+            <p className="mt-2 text-sm text-gray-600">
+              <span className="text-gray-500">Web Sitesi:</span>{' '}
+              <a
+                href={place.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-600 hover:underline break-all"
+              >
+                {place.website}
+              </a>
+            </p>
+          )}
+
           <div className="flex flex-wrap gap-2 mt-4">
             <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
               Priz: {levelLabel(place.outletLevel)}

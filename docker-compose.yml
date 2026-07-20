@@ -50,6 +50,9 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      # Google Places API — mekan detaylarını zenginleştirir, tanımlı değilse
+      # özellik sessizce devre dışı kalır.
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
     ports:
       - "4000:4000"
     volumes:
