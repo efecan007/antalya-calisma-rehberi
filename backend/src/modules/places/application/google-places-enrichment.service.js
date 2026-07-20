@@ -29,7 +29,7 @@ function extractDetails(details) {
     phone: details.international_phone_number || null,
     website: details.website || null,
     openingHours: details.opening_hours?.weekday_text?.join('; ') || null,
-    category: details.type?.[0] || null,
+    category: details.types?.[0] || null,
   };
 }
 

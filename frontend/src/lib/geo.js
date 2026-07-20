@@ -37,9 +37,15 @@ export function isOpenNow(openTime, closeTime, now = new Date()) {
 }
 
 export function directionsUrl(place, mode = 'driving') {
+  // Hedef olarak sadece koordinat verirsek Google Maps yalnızca bir pin (ve ham
+  // koordinat) gösterir, mekan adını değil. Mekan adı + adresi hedef metnine
+  // verince Maps gerçek işletmeyi tanıyıp adıyla gösterir; adres eksikse
+  // koordinata düşeriz.
+  const label = [place.name, place.address].filter(Boolean).join(', ');
+  const destination = place.address ? label : `${place.lat},${place.lng}`;
   const params = new URLSearchParams({
     api: '1',
-    destination: `${place.lat},${place.lng}`,
+    destination,
     travelmode: mode,
   });
   return `https://www.google.com/maps/dir/?${params.toString()}`;

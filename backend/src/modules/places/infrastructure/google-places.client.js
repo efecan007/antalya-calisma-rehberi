@@ -87,7 +87,7 @@ async function findPlace({ query, lat, lng }) {
 async function getPlaceDetails(placeId) {
   const params = new URLSearchParams({
     place_id: placeId,
-    fields: 'name,formatted_address,geometry,international_phone_number,website,opening_hours,type',
+    fields: 'name,formatted_address,geometry,international_phone_number,website,opening_hours,types',
     language: 'tr',
     key: getApiKey(),
   });
