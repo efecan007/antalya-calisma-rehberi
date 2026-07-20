@@ -219,7 +219,11 @@ model Notification {
   type      NotificationType
   message   String
   placeId   Int?             @map("place_id")
-  place     Place?           @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  // Bildirimler her zaman bir mekan bağlamına aittir (sohbet cevabı, favori
+  // güncellemesi, öneri sonucu, ...). Mekan silinince o mekana ait bildirim de
+  // anlamsız kalır ve linki ölür; bu yüzden SetNull yerine Cascade ile birlikte
+  // silinir — böylece "sahipsiz" (placeId'si boşalmış) bildirim oluşmaz.
+  place     Place?           @relation(fields: [placeId], references: [id], onDelete: Cascade)
   isRead    Boolean          @default(false) @map("is_read")
   createdAt DateTime         @default(now()) @map("created_at")
 
