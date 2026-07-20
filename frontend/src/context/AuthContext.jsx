@@ -40,10 +40,12 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
-  async function loginWithToken(token) {
-    localStorage.setItem('wfh_token', token);
-    const { data } = await apiClient.get('/auth/me');
-    setUser(data);
+  // İstemci Firebase'e giriş yaptıktan sonra elde ettiği kimlik jetonunu backend'e
+  // gönderir; backend jetonu doğrulayıp uygulamanın kendi JWT'sini döner.
+  async function loginWithFirebase(idToken) {
+    const { data } = await apiClient.post('/auth/firebase', { idToken });
+    localStorage.setItem('wfh_token', data.token);
+    setUser(data.user);
   }
 
   async function logout() {
@@ -58,7 +60,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithToken, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, loginWithFirebase, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

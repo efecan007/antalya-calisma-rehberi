@@ -13,7 +13,6 @@ import PlaceDetailPage from './pages/PlaceDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LinkedInCallbackPage from './pages/LinkedInCallbackPage';
-import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import AddPlacePage from './pages/AddPlacePage';
 import ProfilePage from './pages/ProfilePage';
 import FavoritesPage from './pages/FavoritesPage';
@@ -35,7 +34,6 @@ export default function App() {
           <Route path="/mekan/:id" element={<PlaceDetailPage />} />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/giris/linkedin" element={<LinkedInCallbackPage />} />
-          <Route path="/giris/google" element={<GoogleCallbackPage />} />
           <Route path="/kayit" element={<RegisterPage />} />
           <Route
             path="/mekan-ekle"

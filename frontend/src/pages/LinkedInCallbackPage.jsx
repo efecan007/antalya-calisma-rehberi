@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 
 export default function LinkedInCallbackPage() {
-  const { loginWithToken } = useAuth();
+  const { loginWithFirebase } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
@@ -13,16 +15,20 @@ export default function LinkedInCallbackPage() {
     if (handled.current) return;
     handled.current = true;
 
-    const token = searchParams.get('token');
-    if (!token) {
+    const customToken = searchParams.get('customToken');
+    if (!customToken) {
       setError('LinkedIn ile giriş başarısız oldu');
       return;
     }
 
-    loginWithToken(token)
+    // Backend'den gelen custom token ile Firebase'e giriş yap, ardından elde edilen
+    // kimlik jetonunu backend'e doğrulatıp uygulama oturumunu aç.
+    signInWithCustomToken(auth, customToken)
+      .then((result) => result.user.getIdToken())
+      .then((idToken) => loginWithFirebase(idToken))
       .then(() => navigate('/'))
       .catch(() => setError('LinkedIn ile giriş başarısız oldu'));
-  }, [searchParams, loginWithToken, navigate]);
+  }, [searchParams, loginWithFirebase, navigate]);
 
   return (
     <div className="h-full flex items-center justify-center bg-gray-50">
