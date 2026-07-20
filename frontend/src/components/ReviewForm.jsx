@@ -5,7 +5,7 @@ import { RATING_CRITERIA } from '../constants';
 const initialState = RATING_CRITERIA.reduce((acc, c) => {
   acc[c.field] = 3;
   return acc;
-}, { comment: '' });
+}, {});
 
 export default function ReviewForm({ placeId, onSubmitted }) {
   const [form, setForm] = useState(initialState);
@@ -50,13 +50,6 @@ export default function ReviewForm({ placeId, onSubmitted }) {
           </label>
         ))}
       </div>
-      <textarea
-        placeholder="Yorumunuz (opsiyonel)"
-        value={form.comment}
-        onChange={(e) => updateField('comment', e.target.value)}
-        className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm bg-white"
-        rows={3}
-      />
       <button
         type="submit"
         disabled={submitting}
