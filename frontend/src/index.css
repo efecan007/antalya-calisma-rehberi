@@ -10,3 +10,68 @@ html, body, #root {
   width: 100%;
   height: 100%;
 }
+
+/* ============================================================================
+   GECE GÖRÜNÜMÜ (koyu tema)
+   Uygulama genelinde renkler sabit kodlanmış Tailwind gri/beyaz sınıflarıyla
+   yazıldığı için (35 dosya, 300+ kullanım), her bileşene tek tek `dark:` varyantı
+   eklemek yerine bu sık kullanılan sınıfları tek yerden koyu karşılıklarıyla
+   eşliyoruz. Tema, <html> üzerindeki `dark` sınıfıyla açılıp kapanır.
+   ========================================================================== */
+:root { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
+html.dark body { background-color: #0f172a; color: #e2e8f0; }
+
+/* Yüzeyler */
+html.dark .bg-white { background-color: #1e293b !important; }
+html.dark .bg-white\/95 { background-color: rgba(30, 41, 59, 0.95) !important; }
+html.dark .bg-gray-50 { background-color: #111827 !important; }
+html.dark .bg-gray-100 { background-color: #1e293b !important; }
+html.dark .bg-gray-200 { background-color: #334155 !important; }
+
+/* Metin */
+html.dark .text-gray-900 { color: #f1f5f9 !important; }
+html.dark .text-gray-800 { color: #e2e8f0 !important; }
+html.dark .text-gray-700 { color: #cbd5e1 !important; }
+html.dark .text-gray-600 { color: #a3b2c7 !important; }
+html.dark .text-gray-500 { color: #94a3b8 !important; }
+html.dark .text-gray-400 { color: #64748b !important; }
+
+/* Kenarlıklar */
+html.dark .border-gray-200 { border-color: #334155 !important; }
+html.dark .border-gray-100 { border-color: #273449 !important; }
+
+/* Hover yüzeyleri */
+html.dark .hover\:bg-gray-50:hover { background-color: #273449 !important; }
+html.dark .hover\:bg-gray-100:hover { background-color: #334155 !important; }
+
+/* Gölgeler koyu zeminde daha koyu olmalı */
+html.dark .shadow-sm,
+html.dark .shadow-card,
+html.dark .shadow-card-hover { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important; }
+
+/* Açık degrade arka planlar (ör. ana sayfa hero: from-brand-50 via-white to-white)
+   koyu temada karartılır; aksi halde açık renge dönen metin açık zeminde kaybolur. */
+html.dark .from-brand-50 {
+  --tw-gradient-from: #0f172a var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+html.dark .via-white {
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #0f172a var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+html.dark .to-white {
+  --tw-gradient-to: #0f172a var(--tw-gradient-to-position) !important;
+}
+
+/* Form elemanları */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+html.dark ::placeholder { color: #64748b !important; opacity: 1; }
