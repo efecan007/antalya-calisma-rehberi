@@ -5,6 +5,7 @@ import PlaceList from '../components/PlaceList';
 import MapView from '../components/MapView';
 import useGeolocation from '../hooks/useGeolocation';
 import { distanceKm, isOpenNow } from '../lib/geo';
+import { useLanguage } from '../context/LanguageContext';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -18,6 +19,7 @@ const DEFAULT_FILTERS = {
 };
 
 export default function PlaceListPage() {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +81,7 @@ export default function PlaceListPage() {
             nearbyMode ? 'border-brand-400 text-brand-700 bg-brand-50' : 'border-gray-200 text-gray-700'
           }`}
         >
-          📍 {geoLoading ? 'Konum alınıyor...' : 'Bana En Yakın Mekanlar'}
+          📍 {geoLoading ? t('list.gettingLocation') : t('list.nearby')}
         </button>
         <label className="flex items-center gap-1.5 border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-700 cursor-pointer">
           <input
@@ -87,7 +89,7 @@ export default function PlaceListPage() {
             checked={openNowOnly}
             onChange={(e) => setOpenNowOnly(e.target.checked)}
           />
-          Şu an açık olanlar
+          {t('list.openNowOnly')}
         </label>
         {geoError && <span className="text-xs text-red-600">{geoError}</span>}
       </div>
@@ -101,7 +103,7 @@ export default function PlaceListPage() {
               mobileView === 'list' ? 'bg-white shadow-card text-brand-700' : 'text-gray-500'
             }`}
           >
-            Liste
+            {t('list.listTab')}
           </button>
           <button
             type="button"
@@ -110,7 +112,7 @@ export default function PlaceListPage() {
               mobileView === 'map' ? 'bg-white shadow-card text-brand-700' : 'text-gray-500'
             }`}
           >
-            Harita
+            {t('list.mapTab')}
           </button>
         </div>
       </div>
@@ -122,7 +124,7 @@ export default function PlaceListPage() {
           } md:block w-full md:w-96 overflow-y-auto p-3 border-r border-gray-200`}
         >
           {loading ? (
-            <p className="text-sm text-gray-500">Yükleniyor...</p>
+            <p className="text-sm text-gray-500">{t('common.loading')}</p>
           ) : (
             <PlaceList places={visiblePlaces} activeId={activeId} onHover={setActiveId} />
           )}

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function GoogleLoginButton() {
   const { loginWithFirebase } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +23,7 @@ export default function GoogleLoginButton() {
     } catch (err) {
       // Kullanıcı popup'ı kapatırsa sessizce geç; diğer hatalarda mesaj göster.
       if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
-        setError('Google ile giriş başarısız oldu');
+        setError(t('auth.googleFailed'));
       }
     } finally {
       setSubmitting(false);
@@ -54,7 +56,7 @@ export default function GoogleLoginButton() {
             d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.6l4.02 3.07C6.25 6.85 8.89 4.75 12 4.75z"
           />
         </svg>
-        {submitting ? 'Giriş yapılıyor...' : 'Google ile giriş yap'}
+        {submitting ? t('auth.googleLoggingIn') : t('auth.googleLogin')}
       </button>
       {error && <p className="text-xs text-red-600 mt-1.5 text-center">{error}</p>}
     </div>

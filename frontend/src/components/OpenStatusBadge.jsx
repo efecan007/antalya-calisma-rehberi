@@ -1,6 +1,8 @@
 import { isOpenNow } from '../lib/geo';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function OpenStatusBadge({ openTime, closeTime, className = '' }) {
+  const { t } = useLanguage();
   const open = isOpenNow(openTime, closeTime);
   if (open === null) return null;
 
@@ -10,7 +12,7 @@ export default function OpenStatusBadge({ openTime, closeTime, className = '' })
         open ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
       } ${className}`}
     >
-      {open ? 'Şu an açık' : 'Şu an kapalı'}
+      {open ? t('badge.openNow') : t('badge.closedNow')}
     </span>
   );
 }

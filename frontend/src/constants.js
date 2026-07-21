@@ -44,22 +44,38 @@ export const OCCUPANCY_LEVELS = [
   { value: 'HIGH', label: 'Kalabalık', emoji: '🔴', className: 'bg-red-50 text-red-700' },
 ];
 
+// Bu yardımcılar isteğe bağlı bir çeviri fonksiyonu (t) alır. t verilirse etiket
+// aktif dilde döner; verilmezse (geriye dönük uyum için) varsayılan TR etiketi döner.
+// Bölgeler özel isim olduğu için her iki dilde de aynıdır, çevrilmez.
 export function occupancyMeta(value) {
   return OCCUPANCY_LEVELS.find((o) => o.value === value);
+}
+
+export function occupancyLabel(value, t) {
+  if (t) return t(`enum.occupancy.${value}`);
+  return OCCUPANCY_LEVELS.find((o) => o.value === value)?.label || value;
 }
 
 export function regionLabel(value) {
   return REGIONS.find((r) => r.value === value)?.label || value;
 }
 
-export function typeLabel(value) {
-  return PLACE_TYPES.find((t) => t.value === value)?.label || value;
+export function typeLabel(value, t) {
+  if (t) return t(`enum.placeType.${value}`);
+  return PLACE_TYPES.find((tp) => tp.value === value)?.label || value;
 }
 
-export function levelLabel(value) {
+export function levelLabel(value, t) {
+  if (t) return t(`enum.level.${value}`);
   return LEVEL_OPTIONS.find((l) => l.value === value)?.label || value;
 }
 
-export function noiseLevelLabel(value) {
+export function noiseLevelLabel(value, t) {
+  if (t) return t(`enum.noiseLevel.${value}`);
   return NOISE_LEVEL_OPTIONS.find((l) => l.value === value)?.label || value;
+}
+
+export function ratingLabel(field, t) {
+  if (t) return t(`enum.rating.${field}`);
+  return RATING_CRITERIA.find((c) => c.field === field)?.label || field;
 }

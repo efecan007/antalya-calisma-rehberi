@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LinkedInCallbackPage() {
   const { loginWithFirebase } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
@@ -17,7 +19,7 @@ export default function LinkedInCallbackPage() {
 
     const customToken = searchParams.get('customToken');
     if (!customToken) {
-      setError('LinkedIn ile giriş başarısız oldu');
+      setError(t('auth.linkedinFailed'));
       return;
     }
 
@@ -27,7 +29,8 @@ export default function LinkedInCallbackPage() {
       .then((result) => result.user.getIdToken())
       .then((idToken) => loginWithFirebase(idToken))
       .then(() => navigate('/'))
-      .catch(() => setError('LinkedIn ile giriş başarısız oldu'));
+      .catch(() => setError(t('auth.linkedinFailed')));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, loginWithFirebase, navigate]);
 
   return (
@@ -36,7 +39,7 @@ export default function LinkedInCallbackPage() {
         {error ? (
           <p className="text-sm text-red-600">{error}</p>
         ) : (
-          <p className="text-sm text-gray-500">Giriş yapılıyor...</p>
+          <p className="text-sm text-gray-500">{t('auth.googleLoggingIn')}</p>
         )}
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 // Tema durumu görsel olarak <html> üzerindeki `dark` sınıfıyla sürülür; bu yüzden
 // global bir context'e gerek yok — tek bir toggle bileşeni sınıfı ve localStorage'ı
@@ -10,6 +11,7 @@ function getIsDark() {
 }
 
 export default function ThemeToggle({ className = '' }) {
+  const { t } = useLanguage();
   const [isDark, setIsDark] = useState(getIsDark);
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export default function ThemeToggle({ className = '' }) {
       type="button"
       onClick={() => setIsDark((v) => !v)}
       className={`p-1.5 rounded-full text-gray-600 hover:text-brand-700 hover:bg-gray-100 transition ${className}`}
-      aria-label={isDark ? 'Gündüz görünümüne geç' : 'Gece görünümüne geç'}
-      title={isDark ? 'Gündüz görünümü' : 'Gece görünümü'}
+      aria-label={isDark ? t('theme.toLight') : t('theme.toDark')}
+      title={isDark ? t('theme.darkTitle') : t('theme.lightTitle')}
     >
       {isDark ? (
         // Güneş ikonu — tıklayınca gündüze döner

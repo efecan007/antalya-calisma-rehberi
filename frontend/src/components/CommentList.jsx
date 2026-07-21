@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '');
 
@@ -11,13 +12,14 @@ function resolvePhotoUrl(url) {
 
 export default function CommentList({ comments, onChanged }) {
   const { user } = useAuth();
+  const { t, lang } = useLanguage();
   const [editingId, setEditingId] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
 
   if (!comments.length) {
-    return <p className="text-sm text-gray-500">Henüz yorum yapılmamış. İlk yorumu sen yaz!</p>;
+    return <p className="text-sm text-gray-500">{t('comment.none')}</p>;
   }
 
   async function toggleHelpful(comment) {
@@ -27,35 +29,35 @@ export default function CommentList({ comments, onChanged }) {
       await apiClient.post(`/comments/${comment.id}/helpful`);
       onChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'İşlem başarısız');
+      setError(err.response?.data?.message || t('comment.actionFailed'));
     } finally {
       setBusyId(null);
     }
   }
 
   async function reportComment(comment) {
-    if (!window.confirm('Bu yorumu şüpheli olarak raporlamak istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('comment.confirmReport'))) return;
     setBusyId(comment.id);
     setError('');
     try {
       await apiClient.post(`/comments/${comment.id}/report`);
-      window.alert('Yorum raporlandı, admin tarafından incelenecek.');
+      window.alert(t('comment.reported'));
     } catch (err) {
-      setError(err.response?.data?.message || 'Raporlama başarısız');
+      setError(err.response?.data?.message || t('comment.reportFailed'));
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteComment(comment) {
-    if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('comment.confirmDelete'))) return;
     setBusyId(comment.id);
     setError('');
     try {
       await apiClient.delete(`/comments/${comment.id}`);
       onChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'Silme başarısız');
+      setError(err.response?.data?.message || t('comment.deleteFailed'));
     } finally {
       setBusyId(null);
     }
@@ -68,7 +70,7 @@ export default function CommentList({ comments, onChanged }) {
 
   async function saveEdit(comment) {
     if (!editContent.trim()) {
-      setError('Yorum metni boş olamaz');
+      setError(t('comment.empty'));
       return;
     }
     setBusyId(comment.id);
@@ -80,7 +82,7 @@ export default function CommentList({ comments, onChanged }) {
       setEditingId(null);
       onChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'Güncelleme başarısız');
+      setError(err.response?.data?.message || t('comment.updateFailed'));
     } finally {
       setBusyId(null);
     }
@@ -93,7 +95,7 @@ export default function CommentList({ comments, onChanged }) {
       await apiClient.patch(`/comments/${comment.id}/${comment.isPinned ? 'unpin' : 'pin'}`);
       onChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'İşlem başarısız');
+      setError(err.response?.data?.message || t('comment.actionFailed'));
     } finally {
       setBusyId(null);
     }
@@ -115,16 +117,16 @@ export default function CommentList({ comments, onChanged }) {
           >
             <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-sm text-gray-900">{comment.user?.name || 'Kullanıcı'}</span>
+                <span className="font-medium text-sm text-gray-900">{comment.user?.name || t('review.userFallback')}</span>
                 {comment.isPinned && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
-                    📌 Sabitlenmiş
+                    {t('comment.pinned')}
                   </span>
                 )}
               </div>
               <span className="text-xs text-gray-400">
-                {new Date(comment.createdAt).toLocaleDateString('tr-TR')}
-                {wasEdited && ' · düzenlendi'}
+                {new Date(comment.createdAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'tr-TR')}
+                {wasEdited && ` · ${t('comment.edited')}`}
               </span>
             </div>
 
@@ -143,14 +145,14 @@ export default function CommentList({ comments, onChanged }) {
                     disabled={isBusy}
                     className="text-xs bg-brand-600 text-white px-3 py-1 rounded-full disabled:opacity-50"
                   >
-                    Kaydet
+                    {t('common.save')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingId(null)}
                     className="text-xs text-gray-500 hover:underline"
                   >
-                    Vazgeç
+                    {t('comment.cancelEdit')}
                   </button>
                 </div>
               </div>
@@ -160,7 +162,7 @@ export default function CommentList({ comments, onChanged }) {
                 {comment.photoUrl && (
                   <img
                     src={resolvePhotoUrl(comment.photoUrl)}
-                    alt="Yorum fotoğrafı"
+                    alt={t('comment.photoAlt')}
                     className="mt-2 h-40 w-auto max-w-full object-cover rounded-lg"
                   />
                 )}
@@ -179,21 +181,21 @@ export default function CommentList({ comments, onChanged }) {
                       : 'border-gray-200 text-gray-600 hover:border-brand-300'
                   }`}
                 >
-                  👍 Bu yorum faydalıydı{comment.helpfulCount ? ` (${comment.helpfulCount})` : ''}
+                  {t('comment.helpful')}{comment.helpfulCount ? ` (${comment.helpfulCount})` : ''}
                 </button>
                 {isOwner && (
                   <button type="button" onClick={() => startEdit(comment)} className="text-gray-500 hover:underline">
-                    Düzenle
+                    {t('common.edit')}
                   </button>
                 )}
                 {(isOwner || user?.role === 'ADMIN') && (
                   <button type="button" onClick={() => deleteComment(comment)} className="text-red-500 hover:underline">
-                    Sil
+                    {t('common.delete')}
                   </button>
                 )}
                 {user?.role === 'ADMIN' && (
                   <button type="button" onClick={() => togglePin(comment)} className="text-amber-600 hover:underline">
-                    {comment.isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle'}
+                    {comment.isPinned ? t('comment.unpin') : t('comment.pin')}
                   </button>
                 )}
                 {user && !isOwner && (
@@ -202,7 +204,7 @@ export default function CommentList({ comments, onChanged }) {
                     onClick={() => reportComment(comment)}
                     className="text-gray-400 hover:underline"
                   >
-                    🚩 Raporla
+                    {t('comment.report')}
                   </button>
                 )}
               </div>

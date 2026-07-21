@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { REGIONS, PLACE_TYPES, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
 
 const initialState = {
@@ -28,6 +29,7 @@ const initialState = {
 
 export default function AddPlacePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { id } = useParams();
   const isEdit = Boolean(id);
   const [form, setForm] = useState(initialState);
@@ -87,7 +89,7 @@ export default function AddPlacePage() {
         const { data } = await apiClient.get('/places/geocode/search', { params: { q: value } });
         setGeoResults(data);
       } catch {
-        setGeoError('Arama başarısız oldu');
+        setGeoError(t('addPlace.searchFailed'));
       } finally {
         setGeoLoading(false);
       }
@@ -129,23 +131,23 @@ export default function AddPlacePage() {
         setSuggested(true);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Mekan kaydedilemedi');
+      setError(err.response?.data?.message || t('addPlace.saveFailed'));
     } finally {
       setSubmitting(false);
     }
   }
 
   if (loading) {
-    return <p className="p-6 text-sm text-gray-500">Yükleniyor...</p>;
+    return <p className="p-6 text-sm text-gray-500">{t('common.loading')}</p>;
   }
 
   if (suggested) {
     return (
       <div className="h-full overflow-y-auto p-6 bg-gray-50">
         <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-card p-6 text-center">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Öneriniz Alındı</h1>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">{t('addPlace.suggestedTitle')}</h1>
           <p className="text-sm text-gray-600">
-            Mekan öneriniz admin onayına gönderildi. Onaylandığında herkese açık listede görünecek.
+            {t('addPlace.suggestedDesc')}
           </p>
         </div>
       </div>
@@ -156,27 +158,27 @@ export default function AddPlacePage() {
     <div className="h-full overflow-y-auto p-4 sm:p-6 bg-gray-50">
       <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-card p-5 sm:p-6">
         <h1 className="text-xl font-semibold text-gray-900 mb-4">
-        {isEdit ? 'Mekanı Düzenle' : isAdmin ? 'Yeni Mekan Ekle' : 'Mekan Öner'}
+        {isEdit ? t('addPlace.titleEdit') : isAdmin ? t('addPlace.titleAdd') : t('addPlace.titleSuggest')}
       </h1>
       {!isEdit && !isAdmin && (
         <p className="text-xs text-gray-500 mb-4">
-          Önerdiğiniz mekan, admin onayından sonra herkese açık listede görünür.
+          {t('addPlace.suggestNote')}
         </p>
       )}
       {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
       {!isEdit && (
         <div className="mb-4 relative">
           <label className="block text-sm text-gray-700 mb-1">
-            Haritadan mekan ara (OpenStreetMap)
+            {t('addPlace.geoLabel')}
           </label>
           <input
             type="text"
-            placeholder="Mekan adı veya adres yazın..."
+            placeholder={t('addPlace.geoPlaceholder')}
             value={geoQuery}
             onChange={(e) => handleGeoQueryChange(e.target.value)}
             className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
           />
-          {geoLoading && <p className="text-xs text-gray-400 mt-1">Aranıyor...</p>}
+          {geoLoading && <p className="text-xs text-gray-400 mt-1">{t('addPlace.searching')}</p>}
           {geoError && <p className="text-xs text-red-600 mt-1">{geoError}</p>}
           {geoResults.length > 0 && (
             <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-card mt-1 max-h-56 overflow-y-auto">
@@ -195,14 +197,14 @@ export default function AddPlacePage() {
             </ul>
           )}
           <p className="text-xs text-gray-400 mt-1">
-            Sonuca tıklayınca adres ve koordinatlar aşağıya otomatik doldurulur.
+            {t('addPlace.geoHint')}
           </p>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
-          placeholder="Mekan adı"
+          placeholder={t('addPlace.namePlaceholder')}
           required
           value={form.name}
           onChange={(e) => update('name', e.target.value)}
@@ -214,9 +216,9 @@ export default function AddPlacePage() {
             onChange={(e) => update('type', e.target.value)}
             className="border border-gray-200 rounded-md px-3 py-2 text-sm"
           >
-            {PLACE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {PLACE_TYPES.map((pt) => (
+              <option key={pt.value} value={pt.value}>
+                {t(`enum.placeType.${pt.value}`)}
               </option>
             ))}
           </select>
@@ -234,7 +236,7 @@ export default function AddPlacePage() {
         </div>
         <input
           type="text"
-          placeholder="Adres"
+          placeholder={t('addPlace.addressPlaceholder')}
           required
           value={form.address}
           onChange={(e) => update('address', e.target.value)}
@@ -244,7 +246,7 @@ export default function AddPlacePage() {
           <input
             type="number"
             step="any"
-            placeholder="Enlem (lat)"
+            placeholder={t('addPlace.latPlaceholder')}
             required
             value={form.lat}
             onChange={(e) => update('lat', e.target.value)}
@@ -253,7 +255,7 @@ export default function AddPlacePage() {
           <input
             type="number"
             step="any"
-            placeholder="Boylam (lng)"
+            placeholder={t('addPlace.lngPlaceholder')}
             required
             value={form.lng}
             onChange={(e) => update('lng', e.target.value)}
@@ -261,10 +263,10 @@ export default function AddPlacePage() {
           />
         </div>
         <p className="text-xs text-gray-400">
-          İpucu: Google Maps'te mekana sağ tıklayıp koordinatları kopyalayabilirsin.
+          {t('addPlace.coordHint')}
         </p>
         <label className="block text-sm text-gray-700">
-          Fiyat Seviyesi: {form.priceLevel}
+          {t('addPlace.priceLevel')} {form.priceLevel}
           <input
             type="range"
             min="1"
@@ -275,7 +277,7 @@ export default function AddPlacePage() {
           />
         </label>
         <textarea
-          placeholder="Açıklama (opsiyonel)"
+          placeholder={t('addPlace.descPlaceholder')}
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
           className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
@@ -284,7 +286,7 @@ export default function AddPlacePage() {
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-sm text-gray-700">
-            Priz Sayısı Seviyesi
+            {t('addPlace.outletLevelLabel')}
             <select
               value={form.outletLevel}
               onChange={(e) => update('outletLevel', e.target.value)}
@@ -292,13 +294,13 @@ export default function AddPlacePage() {
             >
               {LEVEL_OPTIONS.map((l) => (
                 <option key={l.value} value={l.value}>
-                  {l.label}
+                  {t(`enum.level.${l.value}`)}
                 </option>
               ))}
             </select>
           </label>
           <label className="block text-sm text-gray-700">
-            Sessizlik Seviyesi
+            {t('addPlace.noiseLevelLabel')}
             <select
               value={form.noiseLevel}
               onChange={(e) => update('noiseLevel', e.target.value)}
@@ -306,7 +308,7 @@ export default function AddPlacePage() {
             >
               {NOISE_LEVEL_OPTIONS.map((l) => (
                 <option key={l.value} value={l.value}>
-                  {l.label}
+                  {t(`enum.noiseLevel.${l.value}`)}
                 </option>
               ))}
             </select>
@@ -315,14 +317,14 @@ export default function AddPlacePage() {
 
         <input
           type="text"
-          placeholder="Çalışma saatleri (ör. 08:00 - 22:00)"
+          placeholder={t('addPlace.hoursPlaceholder')}
           value={form.openingHours}
           onChange={(e) => update('openingHours', e.target.value)}
           className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
         />
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-sm text-gray-700">
-            Açılış Saati
+            {t('addPlace.openTimeLabel')}
             <input
               type="time"
               value={form.openTime}
@@ -331,7 +333,7 @@ export default function AddPlacePage() {
             />
           </label>
           <label className="block text-sm text-gray-700">
-            Kapanış Saati
+            {t('addPlace.closeTimeLabel')}
             <input
               type="time"
               value={form.closeTime}
@@ -341,11 +343,11 @@ export default function AddPlacePage() {
           </label>
         </div>
         <p className="text-xs text-gray-400 -mt-1">
-          "Şu an açık/kapalı" ve yakınımdaki mekanlar özelliği için kullanılır.
+          {t('addPlace.hoursHint')}
         </p>
 
         <textarea
-          placeholder="Fotoğraf URL'leri (her satıra bir tane)"
+          placeholder={t('addPlace.photosPlaceholder')}
           value={form.photoUrlsText}
           onChange={(e) => update('photoUrlsText', e.target.value)}
           className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
@@ -359,7 +361,7 @@ export default function AddPlacePage() {
               checked={form.hasWifi}
               onChange={(e) => update('hasWifi', e.target.checked)}
             />
-            Wi-Fi var
+            {t('addPlace.checkWifi')}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -367,7 +369,7 @@ export default function AddPlacePage() {
               checked={form.hasAC}
               onChange={(e) => update('hasAC', e.target.checked)}
             />
-            Klima var
+            {t('addPlace.checkAC')}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -375,7 +377,7 @@ export default function AddPlacePage() {
               checked={form.meetingSuitable}
               onChange={(e) => update('meetingSuitable', e.target.checked)}
             />
-            Toplantı için uygun
+            {t('addPlace.checkMeeting')}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -383,7 +385,7 @@ export default function AddPlacePage() {
               checked={form.laptopFriendly}
               onChange={(e) => update('laptopFriendly', e.target.checked)}
             />
-            Laptop ile uzun oturmaya uygun
+            {t('addPlace.checkLaptop')}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -391,7 +393,7 @@ export default function AddPlacePage() {
               checked={form.deskFriendly}
               onChange={(e) => update('deskFriendly', e.target.checked)}
             />
-            Çalışma masası uygun
+            {t('addPlace.checkDesk')}
           </label>
         </div>
 
@@ -400,7 +402,7 @@ export default function AddPlacePage() {
           disabled={submitting}
           className="bg-brand-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
         >
-          {submitting ? 'Kaydediliyor...' : isEdit ? 'Güncelle' : isAdmin ? 'Mekanı Kaydet' : 'Öneriyi Gönder'}
+          {submitting ? t('auth.registering') : isEdit ? t('addPlace.submitEdit') : isAdmin ? t('addPlace.submitAdd') : t('addPlace.submitSuggest')}
         </button>
         </form>
       </div>

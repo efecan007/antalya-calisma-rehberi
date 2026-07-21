@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSocket } from '../lib/socket';
 import { ROOMS } from '../lib/rooms';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function StreamRoomsPage() {
+  const { t } = useLanguage();
   const [liveRooms, setLiveRooms] = useState(() => new Set());
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function StreamRoomsPage() {
   return (
     <div className="h-full overflow-y-auto bg-gray-50 px-4 py-8">
       <div className="max-w-3xl mx-auto space-y-4">
-        <h1 className="text-xl font-semibold text-gray-900">Canlı Yayın Odaları</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('stream.roomsTitle')}</h1>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {ROOMS.map((room) => {
             const live = liveRooms.has(room.id);
@@ -47,14 +49,14 @@ export default function StreamRoomsPage() {
                 className="block rounded-2xl border border-gray-200 bg-white p-5 hover:border-brand-300 hover:shadow-card transition"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">{room.name}</span>
+                  <span className="font-medium text-gray-900">{t('stream.roomName', { n: room.id.split('-')[1] })}</span>
                   {live ? (
                     <span className="flex items-center gap-1.5 text-xs font-medium text-red-600">
                       <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
-                      Canlı
+                      {t('stream.live')}
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-400">Yayın yok</span>
+                    <span className="text-xs text-gray-400">{t('stream.noStream')}</span>
                   )}
                 </div>
               </Link>

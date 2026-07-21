@@ -2,18 +2,20 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { regionLabel, typeLabel } from '../constants';
 
-const STAT_LABELS = {
-  totalUsers: 'Kullanıcı',
-  totalPlaces: 'Onaylı Mekan',
-  pendingSuggestions: 'Bekleyen Öneri',
-  totalReviews: 'Yorum',
-  totalFavorites: 'Favori',
+const STAT_KEYS = {
+  totalUsers: 'admin.statUsers',
+  totalPlaces: 'admin.statPlaces',
+  pendingSuggestions: 'admin.statPending',
+  totalReviews: 'admin.statReviews',
+  totalFavorites: 'admin.statFavorites',
 };
 
 export default function AdminPage() {
   const { user: currentUser } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState(null);
   const [pendingPlaces, setPendingPlaces] = useState([]);
   const [places, setPlaces] = useState([]);
@@ -59,7 +61,7 @@ export default function AdminPage() {
   }
 
   async function deletePlace(id) {
-    if (!window.confirm('Bu mekanı silmek istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('admin.confirmDeletePlace'))) return;
     await apiClient.delete(`/places/${id}`);
     loadAll();
   }
@@ -70,19 +72,19 @@ export default function AdminPage() {
   }
 
   async function deleteUser(id) {
-    if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('admin.confirmDeleteUser'))) return;
     await apiClient.delete(`/admin/users/${id}`);
     loadAll();
   }
 
   async function deleteMessage(id) {
-    if (!window.confirm('Bu mesajı silmek istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('admin.confirmDeleteMessage'))) return;
     await apiClient.delete(`/messages/${id}`);
     loadAll();
   }
 
   async function deleteComment(id) {
-    if (!window.confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+    if (!window.confirm(t('admin.confirmDeleteComment'))) return;
     await apiClient.delete(`/comments/${id}`);
     loadAll();
   }
@@ -92,35 +94,35 @@ export default function AdminPage() {
     loadAll();
   }
 
-  if (loading) return <p className="p-6 text-sm text-gray-500">Yükleniyor...</p>;
+  if (loading) return <p className="p-6 text-sm text-gray-500">{t('common.loading')}</p>;
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6 max-w-4xl mx-auto space-y-8 bg-gray-50">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Admin Paneli</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t('admin.title')}</h1>
         <Link
           to="/mekan-ekle"
           className="text-sm bg-brand-600 text-white px-3 py-1.5 rounded-full transition hover:bg-brand-700"
         >
-          + Yeni Mekan Ekle
+          {t('admin.addNewPlace')}
         </Link>
       </div>
 
       {stats && (
         <section className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {Object.entries(STAT_LABELS).map(([key, label]) => (
+          {Object.entries(STAT_KEYS).map(([key, labelKey]) => (
             <div key={key} className="bg-white shadow-card rounded-xl p-3 text-center">
               <p className="text-2xl font-semibold text-gray-900">{stats[key]}</p>
-              <p className="text-xs text-gray-500">{label}</p>
+              <p className="text-xs text-gray-500">{t(labelKey)}</p>
             </div>
           ))}
         </section>
       )}
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Bekleyen Mekanlar ({pendingPlaces.length})</h2>
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.pendingPlaces', { count: pendingPlaces.length })}</h2>
         {pendingPlaces.length === 0 && (
-          <p className="text-sm text-gray-500">Onay bekleyen mekan önerisi yok.</p>
+          <p className="text-sm text-gray-500">{t('admin.noPending')}</p>
         )}
         <div className="space-y-2">
           {pendingPlaces.map((place) => (
@@ -128,7 +130,7 @@ export default function AdminPage() {
               <div>
                 <p className="font-medium text-gray-900">{place.name}</p>
                 <p className="text-xs text-gray-500">
-                  {typeLabel(place.type)} · {regionLabel(place.region)} · {place.address}
+                  {typeLabel(place.type, t)} · {regionLabel(place.region)} · {place.address}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -136,13 +138,13 @@ export default function AdminPage() {
                   onClick={() => approve(place.id)}
                   className="text-sm bg-emerald-600 text-white px-3 py-1.5 rounded-full transition hover:bg-emerald-700"
                 >
-                  Onayla
+                  {t('admin.approve')}
                 </button>
                 <button
                   onClick={() => reject(place.id)}
                   className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
-                  Reddet
+                  {t('admin.reject')}
                 </button>
               </div>
             </div>
@@ -151,14 +153,14 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Tüm Mekanlar ({places.length})</h2>
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.allPlaces', { count: places.length })}</h2>
         <div className="space-y-2">
           {places.map((place) => (
             <div key={place.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900">{place.name}</p>
                 <p className="text-xs text-gray-500">
-                  {typeLabel(place.type)} · {regionLabel(place.region)} · {place.address}
+                  {typeLabel(place.type, t)} · {regionLabel(place.region)} · {place.address}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -166,13 +168,13 @@ export default function AdminPage() {
                   to={`/admin/mekanlar/${place.id}/duzenle`}
                   className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full transition hover:bg-gray-200"
                 >
-                  Düzenle
+                  {t('common.edit')}
                 </Link>
                 <button
                   onClick={() => deletePlace(place.id)}
                   className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
-                  Sil
+                  {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -181,7 +183,7 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Yorumlar ({reviews.length})</h2>
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.reviews', { count: reviews.length })}</h2>
         <div className="space-y-2">
           {reviews.map((review) => (
             <div key={review.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
@@ -197,7 +199,7 @@ export default function AdminPage() {
                 onClick={() => deleteReview(review.id)}
                 className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
               >
-                Sil
+                {t('common.delete')}
               </button>
             </div>
           ))}
@@ -205,7 +207,7 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Kullanıcılar ({users.length})</h2>
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.users', { count: users.length })}</h2>
         <div className="space-y-2">
           {users.map((u) => (
             <div key={u.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
@@ -221,7 +223,7 @@ export default function AdminPage() {
                   onClick={() => deleteUser(u.id)}
                   className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                 >
-                  Sil
+                  {t('common.delete')}
                 </button>
               )}
             </div>
@@ -230,8 +232,8 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Şüpheli Yorumlar ({reportedComments.length})</h2>
-        {reportedComments.length === 0 && <p className="text-sm text-gray-500">Raporlanmış yorum yok.</p>}
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.reportedComments', { count: reportedComments.length })}</h2>
+        {reportedComments.length === 0 && <p className="text-sm text-gray-500">{t('admin.noReported')}</p>}
         <div className="space-y-2">
           {reportedComments.map((comment) => (
             <div key={comment.id} className="bg-white shadow-card rounded-xl p-3">
@@ -239,20 +241,20 @@ export default function AdminPage() {
                 <p className="text-sm text-gray-900">
                   <span className="font-medium">{comment.user?.name}</span> ·{' '}
                   <span className="text-gray-500">{comment.place?.name}</span> ·{' '}
-                  <span className="text-red-600">{comment.reportCount} rapor</span>
+                  <span className="text-red-600">{t('admin.reportCount', { count: comment.reportCount })}</span>
                 </p>
                 <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() => dismissReports(comment.id)}
                     className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full transition hover:bg-gray-200"
                   >
-                    Raporları Yoksay
+                    {t('admin.dismissReports')}
                   </button>
                   <button
                     onClick={() => deleteComment(comment.id)}
                     className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
                   >
-                    Yorumu Sil
+                    {t('admin.deleteComment')}
                   </button>
                 </div>
               </div>
@@ -260,8 +262,8 @@ export default function AdminPage() {
               <div className="mt-1 space-y-0.5">
                 {comment.reports?.map((report) => (
                   <p key={report.id} className="text-xs text-gray-400">
-                    Raporlayan: {report.user?.name}
-                    {report.reason && ` · Sebep: ${report.reason}`}
+                    {t('admin.reportedBy', { name: report.user?.name })}
+                    {report.reason && t('admin.reportReason', { reason: report.reason })}
                   </p>
                 ))}
               </div>
@@ -271,8 +273,8 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="font-medium text-gray-900 mb-3">Sohbet Mesajları ({messages.length})</h2>
-        {messages.length === 0 && <p className="text-sm text-gray-500">Henüz mesaj yok.</p>}
+        <h2 className="font-medium text-gray-900 mb-3">{t('admin.chatMessages', { count: messages.length })}</h2>
+        {messages.length === 0 && <p className="text-sm text-gray-500">{t('admin.noMessages')}</p>}
         <div className="space-y-2">
           {messages.map((m) => (
             <div key={m.id} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between">
@@ -287,7 +289,7 @@ export default function AdminPage() {
                 onClick={() => deleteMessage(m.id)}
                 className="text-sm bg-red-600 text-white px-3 py-1.5 rounded-full transition hover:bg-red-700"
               >
-                Sil
+                {t('common.delete')}
               </button>
             </div>
           ))}

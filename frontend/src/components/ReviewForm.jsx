@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import apiClient from '../api/client';
 import { RATING_CRITERIA } from '../constants';
+import { useLanguage } from '../context/LanguageContext';
 
 const initialState = RATING_CRITERIA.reduce((acc, c) => {
   acc[c.field] = 3;
@@ -8,6 +9,7 @@ const initialState = RATING_CRITERIA.reduce((acc, c) => {
 }, {});
 
 export default function ReviewForm({ placeId, onSubmitted }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -25,7 +27,7 @@ export default function ReviewForm({ placeId, onSubmitted }) {
       onSubmitted(data);
       setForm(initialState);
     } catch (err) {
-      setError(err.response?.data?.message || 'Değerlendirme gönderilemedi');
+      setError(err.response?.data?.message || t('review.submitFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -33,12 +35,12 @@ export default function ReviewForm({ placeId, onSubmitted }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 space-y-3">
-      <h3 className="font-medium text-gray-900">Değerlendirme Yap</h3>
+      <h3 className="font-medium text-gray-900">{t('review.makeReview')}</h3>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {RATING_CRITERIA.map((c) => (
           <label key={c.field} className="text-sm text-gray-700">
-            {c.label}: <span className="font-semibold">{form[c.field]}</span>
+            {t(`enum.rating.${c.field}`)}: <span className="font-semibold">{form[c.field]}</span>
             <input
               type="range"
               min="1"
@@ -55,7 +57,7 @@ export default function ReviewForm({ placeId, onSubmitted }) {
         disabled={submitting}
         className="bg-brand-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-brand-700 transition disabled:opacity-50"
       >
-        {submitting ? 'Gönderiliyor...' : 'Gönder'}
+        {submitting ? t('common.sending') : t('review.submit')}
       </button>
     </form>
   );

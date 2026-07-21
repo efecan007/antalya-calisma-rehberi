@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from './ThemeToggle';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const linkClass = ({ isActive }) =>
   `px-1 py-1 text-sm transition ${isActive ? 'text-brand-700 font-medium' : 'text-gray-600 hover:text-brand-700'}`;
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -26,33 +29,33 @@ export default function Navbar() {
     <nav className="bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm relative z-20">
       <div className="px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 shrink-0" onClick={closeMenu}>
-          <span className="font-semibold text-lg text-gray-900">Remote Rehber</span>
+          <span className="font-semibold text-lg text-gray-900">{t('nav.brand')}</span>
           <span className="text-xs font-medium text-brand-700 bg-brand-50 border border-brand-100 rounded-full px-2 py-0.5">
-            Antalya
+            {t('nav.city')}
           </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-5">
           <NavLink to="/mekanlar" className={linkClass}>
-            Mekanlar
+            {t('nav.places')}
           </NavLink>
           <NavLink to="/harita" className={linkClass}>
-            Harita
+            {t('nav.map')}
           </NavLink>
           <NavLink to="/yayin" className={linkClass}>
-            Canlı Yayın
+            {t('nav.stream')}
           </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass}>
-                Mekan Ekle
+                {t('nav.addPlace')}
               </NavLink>
               <NavLink to="/favorilerim" className={linkClass}>
-                Favorilerim
+                {t('nav.favorites')}
               </NavLink>
               {user.role === 'ADMIN' && (
                 <NavLink to="/admin" className={linkClass}>
-                  Admin Paneli
+                  {t('nav.admin')}
                 </NavLink>
               )}
               <NavLink to="/profil" className={linkClass}>
@@ -60,32 +63,34 @@ export default function Navbar() {
               </NavLink>
               <NotificationBell />
               <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-brand-700 transition">
-                Çıkış
+                {t('nav.logout')}
               </button>
             </>
           ) : (
             <>
               <NavLink to="/giris" className={linkClass}>
-                Giriş
+                {t('nav.login')}
               </NavLink>
               <Link
                 to="/kayit"
                 className="bg-brand-600 text-white text-sm px-4 py-1.5 rounded-full font-medium hover:bg-brand-700 transition"
               >
-                Kayıt Ol
+                {t('nav.register')}
               </Link>
             </>
           )}
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
+          <LanguageSwitcher />
           <ThemeToggle />
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             className="p-2 -mr-2 text-gray-600 hover:text-brand-700"
-            aria-label="Menüyü aç/kapat"
+            aria-label={t('nav.menuToggle')}
             aria-expanded={menuOpen}
           >
           {menuOpen ? (
@@ -104,25 +109,25 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white px-4 py-3 flex flex-col gap-1 shadow-card">
           <NavLink to="/mekanlar" className={linkClass} onClick={closeMenu}>
-            Mekanlar
+            {t('nav.places')}
           </NavLink>
           <NavLink to="/harita" className={linkClass} onClick={closeMenu}>
-            Harita
+            {t('nav.map')}
           </NavLink>
           <NavLink to="/yayin" className={linkClass} onClick={closeMenu}>
-            Canlı Yayın
+            {t('nav.stream')}
           </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass} onClick={closeMenu}>
-                Mekan Ekle
+                {t('nav.addPlace')}
               </NavLink>
               <NavLink to="/favorilerim" className={linkClass} onClick={closeMenu}>
-                Favorilerim
+                {t('nav.favorites')}
               </NavLink>
               {user.role === 'ADMIN' && (
                 <NavLink to="/admin" className={linkClass} onClick={closeMenu}>
-                  Admin Paneli
+                  {t('nav.admin')}
                 </NavLink>
               )}
               <NavLink to="/profil" className={linkClass} onClick={closeMenu}>
@@ -132,20 +137,20 @@ export default function Navbar() {
                 <NotificationBell />
               </div>
               <button onClick={handleLogout} className="text-left text-sm text-gray-600 hover:text-brand-700 py-1">
-                Çıkış
+                {t('nav.logout')}
               </button>
             </>
           ) : (
             <>
               <NavLink to="/giris" className={linkClass} onClick={closeMenu}>
-                Giriş
+                {t('nav.login')}
               </NavLink>
               <Link
                 to="/kayit"
                 onClick={closeMenu}
                 className="mt-1 inline-block text-center bg-brand-600 text-white text-sm px-4 py-2 rounded-full font-medium hover:bg-brand-700 transition"
               >
-                Kayıt Ol
+                {t('nav.register')}
               </Link>
             </>
           )}

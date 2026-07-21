@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const POLL_INTERVAL_MS = 30000;
 
@@ -15,19 +16,20 @@ const TYPE_LINKS = {
   CHAT_REPLY: (n) => (n.placeId ? `/mekan/${n.placeId}` : null),
 };
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return 'az önce';
-  if (minutes < 60) return `${minutes} dk önce`;
+  if (minutes < 1) return t('time.justNow');
+  if (minutes < 60) return t('time.minAgo', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} sa önce`;
+  if (hours < 24) return t('time.hoursAgo', { n: hours });
   const days = Math.floor(hours / 24);
-  return `${days} gün önce`;
+  return t('time.daysAgo', { n: days });
 }
 
 export default function NotificationBell() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -120,15 +122,15 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white border border-gray-200 rounded-xl shadow-card-hover z-30 max-h-96 overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-            <span className="text-sm font-medium text-gray-900">Bildirimler</span>
+            <span className="text-sm font-medium text-gray-900">{t('notifications.title')}</span>
             {notifications.some((n) => !n.isRead) && (
               <button type="button" onClick={markAllRead} className="text-xs text-brand-600 hover:underline">
-                Tümünü okundu işaretle
+                {t('notifications.markAllRead')}
               </button>
             )}
           </div>
           {notifications.length === 0 ? (
-            <p className="text-sm text-gray-500 px-4 py-6 text-center">Henüz bildirimin yok.</p>
+            <p className="text-sm text-gray-500 px-4 py-6 text-center">{t('notifications.empty')}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {notifications.map((n) => {
@@ -136,7 +138,7 @@ export default function NotificationBell() {
                 const content = (
                   <div className={`px-4 py-2.5 text-sm ${n.isRead ? 'bg-white' : 'bg-brand-50/60'}`}>
                     <p className="text-gray-800">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.createdAt)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.createdAt, t)}</p>
                   </div>
                 );
                 return link ? (

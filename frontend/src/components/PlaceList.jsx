@@ -1,10 +1,12 @@
 import PlaceCard from './PlaceCard';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PlaceList({ places, activeId, onHover }) {
+  const { t } = useLanguage();
   if (!places.length) {
     return (
       <div className="text-center text-gray-500 text-sm py-8">
-        Filtrelere uyan mekan bulunamadı.
+        {t('place.noneMatch')}
       </div>
     );
   }

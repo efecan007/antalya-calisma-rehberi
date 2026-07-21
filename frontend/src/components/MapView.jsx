@@ -6,6 +6,7 @@ import { regionLabel, typeLabel } from '../constants';
 import OccupancyBadge from './OccupancyBadge';
 import OpenStatusBadge from './OpenStatusBadge';
 import { formatDistance } from '../lib/geo';
+import { useLanguage } from '../context/LanguageContext';
 
 // Harita, gizli (display:none) bir konteynerin içinde mount edildiğinde Leaflet
 // boyutu 0x0 olarak hesaplar; konteyner sonradan görünür olduğunda (ör. mobilde
@@ -44,16 +45,17 @@ const userIcon = L.divIcon({
 });
 
 export default function MapView({ places, activeId, onMarkerHover, userLocation }) {
+  const { t } = useLanguage();
   return (
     <MapContainer center={ANTALYA_CENTER} zoom={12} className="w-full h-full">
       <MapResizeHandler />
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {userLocation && (
         <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-          <Popup>Konumunuz</Popup>
+          <Popup>{t('map.yourLocation')}</Popup>
         </Marker>
       )}
       {places.map((place) => (
@@ -69,20 +71,22 @@ export default function MapView({ places, activeId, onMarkerHover, userLocation 
             <div className="text-sm">
               <p className="font-semibold">{place.name}</p>
               <p className="text-xs text-gray-500">
-                {typeLabel(place.type)} · {regionLabel(place.region)}
+                {typeLabel(place.type, t)} · {regionLabel(place.region)}
               </p>
               <p className="text-xs text-gray-500 mt-0.5">
-                {place.ratings?.overallRating ?? '-'} / 5 · {place.ratings?.reviewCount || 0} değerlendirme
+                {place.ratings?.overallRating ?? '-'} / 5 · {t('place.reviewCount', { count: place.ratings?.reviewCount || 0 })}
               </p>
               {place.distanceKm != null && (
-                <p className="text-xs text-brand-600 font-medium mt-0.5">{formatDistance(place.distanceKm)} uzaklıkta</p>
+                <p className="text-xs text-brand-600 font-medium mt-0.5">
+                  {t('place.distanceAway', { distance: formatDistance(place.distanceKm) })}
+                </p>
               )}
               <div className="mt-1 flex items-center gap-1 flex-wrap">
                 {place.occupancy && <OccupancyBadge occupancy={place.occupancy} />}
                 <OpenStatusBadge openTime={place.openTime} closeTime={place.closeTime} />
               </div>
               <Link to={`/mekan/${place.id}`} className="text-xs text-brand-600 hover:underline mt-1 inline-block">
-                Detayları Gör →
+                {t('map.seeDetails')}
               </Link>
             </div>
           </Popup>

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
-const DAY_LABELS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']; // JS Date.getDay() sırasıyla aynı (0=Paz)
-const DAY_LABELS_FULL = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 function cellColor(cell) {
@@ -17,11 +16,19 @@ function formatHour(h) {
   return `${String(h).padStart(2, '0')}:00`;
 }
 
-function formatWindow(w) {
-  return `${DAY_LABELS_FULL[w.day]} günleri ${formatHour(w.startHour)}–${formatHour(w.endHour)} arasında genellikle yoğun.`;
-}
-
 export default function OccupancyForecast({ placeId }) {
+  const { t } = useLanguage();
+  const DAY_LABELS = t('days.short');
+  const DAY_LABELS_FULL = t('days.full');
+
+  function formatWindow(w) {
+    return t('forecast.window', {
+      day: DAY_LABELS_FULL[w.day],
+      start: formatHour(w.startHour),
+      end: formatHour(w.endHour),
+    });
+  }
+
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hoverCell, setHoverCell] = useState(null);
@@ -46,7 +53,7 @@ export default function OccupancyForecast({ placeId }) {
 
   return (
     <div className="bg-gray-50 rounded-xl p-3 mt-3">
-      <p className="text-sm font-medium text-gray-900">Tahmini Yoğunluk</p>
+      <p className="text-sm font-medium text-gray-900">{t('forecast.title')}</p>
 
       {forecast.predictions.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
@@ -87,23 +94,24 @@ export default function OccupancyForecast({ placeId }) {
       </div>
 
       <div className="mt-2 flex items-center gap-2">
-        <span className="text-[10px] text-gray-400">Az</span>
+        <span className="text-[10px] text-gray-400">{t('forecast.legendLow')}</span>
         <div className="flex gap-0.5">
           {['bg-gray-100', 'bg-brand-100', 'bg-brand-300', 'bg-brand-500', 'bg-brand-700'].map((c) => (
             <div key={c} className={`${c} rounded-[2px]`} style={{ width: 10, height: 10 }} />
           ))}
         </div>
-        <span className="text-[10px] text-gray-400">Çok yoğun</span>
+        <span className="text-[10px] text-gray-400">{t('forecast.legendHigh')}</span>
       </div>
 
       {hoverCell && (
         <p className="mt-1.5 text-xs text-gray-600">
           {DAY_LABELS_FULL[hoverCell.day]} {formatHour(hoverCell.hour)}:{' '}
           {hoverCell.cell?.sampleCount
-            ? `${hoverCell.cell.sampleCount} bildirim, genelde ${
-                { LOW: 'sakin', MEDIUM: 'orta yoğun', HIGH: 'kalabalık' }[hoverCell.cell.level]
-              }`
-            : 'yeterli veri yok'}
+            ? t('forecast.reports', {
+                count: hoverCell.cell.sampleCount,
+                level: t(`forecast.level${hoverCell.cell.level.charAt(0)}${hoverCell.cell.level.slice(1).toLowerCase()}`),
+              })
+            : t('forecast.noData')}
         </p>
       )}
     </div>

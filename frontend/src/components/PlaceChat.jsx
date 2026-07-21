@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getSocket } from '../lib/socket';
 
 const POLL_INTERVAL_MS = 5000;
@@ -12,6 +13,7 @@ const TYPING_EXPIRE_MS = 4000;
 
 export default function PlaceChat({ placeId }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -151,7 +153,7 @@ export default function PlaceChat({ placeId }) {
       await apiClient.post(`/places/${placeId}/messages`, { content });
       setText('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Mesaj gönderilemedi');
+      setError(err.response?.data?.message || t('chat.sendFailed'));
     } finally {
       setSending(false);
     }
@@ -159,14 +161,14 @@ export default function PlaceChat({ placeId }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-card p-5 sm:p-6 mt-4">
-      <h2 className="font-medium text-gray-900 mb-3">Mekan Sohbeti</h2>
+      <h2 className="font-medium text-gray-900 mb-3">{t('chat.title')}</h2>
 
       {user ? (
         <>
           <div ref={listRef} className="h-64 overflow-y-auto bg-gray-50 rounded-xl p-3 space-y-2">
-            {loading && <p className="text-sm text-gray-500">Yükleniyor...</p>}
+            {loading && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
             {!loading && messages.length === 0 && (
-              <p className="text-sm text-gray-500">Henüz mesaj yok. İlk mesajı sen yaz!</p>
+              <p className="text-sm text-gray-500">{t('chat.empty')}</p>
             )}
             {messages.map((m) => {
               const mine = m.userId === user.id;
@@ -177,7 +179,7 @@ export default function PlaceChat({ placeId }) {
                       mine ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-800'
                     }`}
                   >
-                    {!mine && <p className="text-xs font-medium text-brand-700 mb-0.5">{m.user?.name || 'Kullanıcı'}</p>}
+                    {!mine && <p className="text-xs font-medium text-brand-700 mb-0.5">{m.user?.name || t('review.userFallback')}</p>}
                     <p className="break-words">{m.content}</p>
                   </div>
                 </div>
@@ -198,7 +200,7 @@ export default function PlaceChat({ placeId }) {
               value={text}
               onChange={(e) => handleTextChange(e.target.value)}
               maxLength={1000}
-              placeholder="Bir mesaj yaz..."
+              placeholder={t('chat.placeholder')}
               className="flex-1 min-w-0 border border-gray-200 rounded-md px-3 py-1.5 text-sm"
             />
             <button
@@ -206,16 +208,16 @@ export default function PlaceChat({ placeId }) {
               disabled={sending || !text.trim()}
               className="bg-brand-600 text-white text-sm px-4 py-1.5 rounded-md font-medium hover:bg-brand-700 transition disabled:opacity-50"
             >
-              Gönder
+              {t('common.send')}
             </button>
           </form>
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
         </>
       ) : (
         <p className="text-sm text-gray-500">
-          Sohbete katılmak için{' '}
+          {t('chat.loginToChatPre')}{' '}
           <Link to="/giris" className="text-brand-600 hover:underline">
-            giriş yapın
+            {t('detail.loginLink')}
           </Link>
           .
         </p>

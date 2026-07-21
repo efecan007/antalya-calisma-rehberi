@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getSocket } from '../lib/socket';
-import { ROOMS, getRoomName } from '../lib/rooms';
+import { ROOMS } from '../lib/rooms';
 
 // STUN tek başına yalnızca aynı ağdaki (LAN) bağlantılar için yeterlidir; farklı ağlardaki
 // (ör. biri mobil veri, biri farklı wifi) taraflar arasında simetrik NAT'lar STUN ile
@@ -31,6 +32,7 @@ const ICE_SERVERS = [
 export default function StreamPage() {
   const { roomId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [isLive, setIsLive] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isWatching, setIsWatching] = useState(false);
@@ -181,7 +183,7 @@ export default function StreamPage() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       if (stream.getVideoTracks().length === 0) {
         stream.getTracks().forEach((track) => track.stop());
-        setError('Kamera bulunamadı ya da izin verilmedi.');
+        setError(t('stream.noCamera'));
         return;
       }
       localStreamRef.current = stream;
@@ -201,7 +203,7 @@ export default function StreamPage() {
         setIsBroadcasting(true);
       });
     } catch {
-      setError('Kameraya erişilemedi. Tarayıcı izinlerini kontrol edin.');
+      setError(t('stream.cameraError'));
     }
   }
 
@@ -213,7 +215,7 @@ export default function StreamPage() {
   function joinAsViewer() {
     setError('');
     getSocket().emit('viewer-join', { roomId }, (res) => {
-      if (!res?.live) setError('Şu anda canlı yayın yok');
+      if (!res?.live) setError(t('stream.noneLive'));
     });
   }
 
@@ -221,9 +223,9 @@ export default function StreamPage() {
     return (
       <div className="h-full overflow-y-auto bg-gray-50 px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-4">
-          <p className="text-sm text-gray-600">Oda bulunamadı.</p>
+          <p className="text-sm text-gray-600">{t('stream.roomNotFound')}</p>
           <Link to="/yayin" className="text-brand-600 hover:text-brand-700 text-sm font-medium">
-            Odalara geri dön
+            {t('stream.backToRooms')}
           </Link>
         </div>
       </div>
@@ -235,10 +237,10 @@ export default function StreamPage() {
       <div className="max-w-3xl mx-auto space-y-4">
         <div className="flex items-center gap-2">
           <Link to="/yayin" className="text-sm text-gray-500 hover:text-brand-700 transition">
-            Odalar
+            {t('stream.rooms')}
           </Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-xl font-semibold text-gray-900">{getRoomName(roomId)}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('stream.roomName', { n: roomId.split('-')[1] })}</h1>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -249,7 +251,7 @@ export default function StreamPage() {
               onClick={stopBroadcast}
               className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-700 transition"
             >
-              Yayını Bitir
+              {t('stream.stopBroadcast')}
             </button>
           </div>
         ) : (
@@ -270,14 +272,14 @@ export default function StreamPage() {
                   }}
                   className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full hover:bg-black/90 transition"
                 >
-                  Sesi Aç
+                  {t('stream.unmute')}
                 </button>
               )}
             </div>
 
             {!isWatching && (
               <div className="w-full aspect-video rounded-2xl bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
-                {isLive ? 'Yayına bağlanılıyor...' : 'Şu anda canlı yayın yok'}
+                {isLive ? t('stream.connecting') : t('stream.noneLive')}
               </div>
             )}
 
@@ -287,7 +289,7 @@ export default function StreamPage() {
                   onClick={joinAsViewer}
                   className="bg-brand-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-brand-700 transition"
                 >
-                  Yayını İzle
+                  {t('stream.watch')}
                 </button>
               )}
               {user && !isLive && (
@@ -295,7 +297,7 @@ export default function StreamPage() {
                   onClick={startBroadcast}
                   className="bg-brand-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-brand-700 transition"
                 >
-                  Yayın Başlat
+                  {t('stream.start')}
                 </button>
               )}
             </div>
