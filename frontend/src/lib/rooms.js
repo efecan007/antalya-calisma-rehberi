@@ -1,9 +1,6 @@
-export const ROOMS = [
-  { id: 'oda-1', name: 'Oda 1' },
-  { id: 'oda-2', name: 'Oda 2' },
-  { id: 'oda-3', name: 'Oda 3' },
-];
+const ROOM_COUNT = 21;
 
-export function getRoomName(roomId) {
-  return ROOMS.find((room) => room.id === roomId)?.name ?? roomId;
-}
+export const ROOMS = Array.from({ length: ROOM_COUNT }, (_, i) => ({
+  id: `oda-${i + 1}`,
+  name: `Oda ${i + 1}`,
+}));

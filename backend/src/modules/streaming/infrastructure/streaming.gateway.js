@@ -5,7 +5,8 @@ const { verifyToken } = require('../../../common/security/jwt');
 // Sinyalleşme mesajları (offer/answer/ice-candidate) sunucu üzerinden doğrudan
 // hedef sokete iletilir; medya akışı taraflar arasında doğrudan (WebRTC
 // peer-to-peer) gerçekleşir.
-const ROOM_IDS = ['oda-1', 'oda-2', 'oda-3'];
+const ROOM_COUNT = 21;
+const ROOM_IDS = Array.from({ length: ROOM_COUNT }, (_, i) => `oda-${i + 1}`);
 
 function attachStreamingGateway(io) {
   const broadcasters = new Map(); // roomId -> { socketId, userId }
