@@ -10,11 +10,20 @@ function getAuthInstance() {
   const { initializeApp, cert, getApps } = require('firebase-admin/app');
   const { getAuth } = require('firebase-admin/auth');
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   // Private key .env içinde tek satır tutulur; literal "\n" dizileri gerçek satır
-  // sonlarına çevrilir (docker/dotenv zaten çevirmişse bu no-op olur).
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  // sonlarına çevrilir (docker/dotenv zaten çevirmişse bu no-op olur). Barındırma
+  // panellerine (Render vb.) yapıştırılırken başta/sonda fazladan boşluk/satır sonu
+  // kalabilir, ya da .env dosyasındaki sarmalayıcı tırnaklar yanlışlıkla değerin
+  // parçası olarak kopyalanabilir — ikisi de "Failed to parse private key" hatasına
+  // yol açar; trim() ve tırnak temizliği bu sınıf hataları tolere eder.
+  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
+  const unquotedPrivateKey =
+    rawPrivateKey && rawPrivateKey.length >= 2 && rawPrivateKey[0] === rawPrivateKey.at(-1) && '"\''.includes(rawPrivateKey[0])
+      ? rawPrivateKey.slice(1, -1)
+      : rawPrivateKey;
+  const privateKey = unquotedPrivateKey?.replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error(
