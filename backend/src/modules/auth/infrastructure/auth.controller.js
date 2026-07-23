@@ -5,6 +5,7 @@ const { userRepository } = require('../../users/infrastructure/users.container')
 const AuthService = require('../application/auth.service');
 const linkedin = require('./linkedin.client');
 const { decorateService } = require('../../../common/logging/withLogging');
+const logger = require('../../../common/logging/logger');
 
 const authService = decorateService(
   new AuthService({ userRepository, hashPassword, comparePassword, signToken }),
@@ -131,6 +132,7 @@ async function linkedinCallback(req, res) {
     });
     res.redirect(`${frontendUrl}/giris/linkedin?customToken=${encodeURIComponent(customToken)}`);
   } catch (err) {
+    logger.error('LinkedIn callback başarısız', err);
     res.redirect(`${frontendUrl}/giris?error=linkedin_auth_failed`);
   }
 }
