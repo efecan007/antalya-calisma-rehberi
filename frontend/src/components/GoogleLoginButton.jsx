@@ -23,10 +23,7 @@ export default function GoogleLoginButton() {
     } catch (err) {
       // Kullanıcı popup'ı kapatırsa sessizce geç; diğer hatalarda mesaj göster.
       if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
-        // Geçici teşhis: gerçek hata kodunu/mesajını ekrana yaz ki sebebi görelim.
-        const detail = err?.code || err?.message || 'bilinmeyen hata';
-        setError(`${t('auth.googleFailed')} (${detail})`);
-        console.error('Google login hatası:', err);
+        setError(t('auth.googleFailed'));
       }
     } finally {
       setSubmitting(false);
