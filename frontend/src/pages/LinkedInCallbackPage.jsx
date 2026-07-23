@@ -29,7 +29,12 @@ export default function LinkedInCallbackPage() {
       .then((result) => result.user.getIdToken())
       .then((idToken) => loginWithFirebase(idToken))
       .then(() => navigate('/'))
-      .catch(() => setError(t('auth.linkedinFailed')));
+      .catch((err) => {
+        // Geçici teşhis: gerçek hata kodunu/mesajını ekrana yaz ki sebebi görelim.
+        const detail = err?.code || err?.message || 'bilinmeyen hata';
+        setError(`${t('auth.linkedinFailed')} (${detail})`);
+        console.error('LinkedIn callback hatası:', err);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, loginWithFirebase, navigate]);
 
