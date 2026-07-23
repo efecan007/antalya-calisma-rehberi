@@ -10,6 +10,7 @@ const { placeRepository } = require('../modules/places/infrastructure/places.con
 const { occupancyService } = require('../modules/occupancy/infrastructure/occupancy.container');
 const { notificationsService } = require('../modules/notifications/infrastructure/notifications.container');
 const FavoritesRepository = require('../modules/favorites/infrastructure/favorites.repository');
+const logger = require('../common/logging/logger');
 
 const CHECK_INTERVAL_MS = 10 * 60 * 1000;
 const NOTIFICATION_COOLDOWN_MINUTES = 6 * 60;
@@ -47,7 +48,7 @@ async function checkLowOccupancyFavorites() {
       }
     }
   } catch (err) {
-    console.error('Doluluk bildirimi kontrolü başarısız:', err);
+    logger.error('Doluluk bildirimi kontrolü başarısız', err);
   }
 }
 

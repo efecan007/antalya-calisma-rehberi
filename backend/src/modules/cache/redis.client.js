@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const logger = require('../../common/logging/logger');
 
 let client = null;
 
@@ -12,7 +13,7 @@ function getRedisClient() {
   });
 
   client.on('error', (err) => {
-    console.warn('Redis bağlantı hatası (cache devre dışı kalabilir):', err.message);
+    logger.warn('Redis bağlantı hatası (cache devre dışı kalabilir)', err.message);
   });
 
   return client;

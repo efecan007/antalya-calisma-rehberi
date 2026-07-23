@@ -1,4 +1,5 @@
 const googlePlaces = require('../infrastructure/google-places.client');
+const logger = require('../../../common/logging/logger');
 
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 gün — mekan bilgisi sık değişmez,
 // Google Places kotasını korumak için aynı mekan tekrar tekrar sorgulanmaz.
@@ -50,7 +51,7 @@ class GooglePlacesEnrichmentService {
         ? await this.cache.getOrSet(cacheKey, CACHE_TTL_SECONDS, fetchAndMatch)
         : await fetchAndMatch();
     } catch (err) {
-      console.warn(`Google Places zenginleştirme başarısız (place ${place.id}):`, err.message);
+      logger.warn(`Google Places zenginleştirme başarısız (place ${place.id})`, err.message);
       return null;
     }
   }

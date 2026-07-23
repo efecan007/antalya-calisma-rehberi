@@ -6,6 +6,7 @@ const { parseCorsOrigin } = require('./common/security/cors-origin');
 const { attachStreamingGateway } = require('./modules/streaming/infrastructure/streaming.gateway');
 const { attachChatGateway } = require('./modules/chat/infrastructure/chat.gateway');
 const { startLowOccupancyWatcher } = require('./jobs/lowOccupancyNotifier');
+const logger = require('./common/logging/logger');
 
 const app = createApp();
 const server = http.createServer(app);
@@ -20,5 +21,5 @@ startLowOccupancyWatcher();
 const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, () => {
-  console.log(`Work From Hotel API listening on port ${PORT}`);
+  logger.info(`Work From Hotel API listening on port ${PORT}`);
 });

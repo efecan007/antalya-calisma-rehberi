@@ -4,8 +4,12 @@ const { verifyIdToken, createCustomToken } = require('../../../common/security/f
 const { userRepository } = require('../../users/infrastructure/users.container');
 const AuthService = require('../application/auth.service');
 const linkedin = require('./linkedin.client');
+const { decorateService } = require('../../../common/logging/withLogging');
 
-const authService = new AuthService({ userRepository, hashPassword, comparePassword, signToken });
+const authService = decorateService(
+  new AuthService({ userRepository, hashPassword, comparePassword, signToken }),
+  'AuthService'
+);
 
 function getFrontendUrl() {
   const origins = process.env.CORS_ORIGIN || 'http://localhost:5173';

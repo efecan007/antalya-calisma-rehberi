@@ -17,19 +17,23 @@ const FavoritesRepository = require('../../favorites/infrastructure/favorites.re
 // güvenle import edilebilir.
 const { notificationsService } = require('../../notifications/infrastructure/notifications.container');
 const GooglePlacesEnrichmentService = require('../application/google-places-enrichment.service');
+const { decorateService } = require('../../../common/logging/withLogging');
 
 const placeRepository = new PlacesRepository(prisma);
 const occupancyRepository = new OccupancyRepository(prisma);
 const occupancyService = new OccupancyService({ occupancyRepository, placeRepository });
 const favoriteRepository = new FavoritesRepository(prisma);
 const placeEnrichmentService = new GooglePlacesEnrichmentService({ cache });
-const placesService = new PlacesService({
-  placeRepository,
-  cache,
-  occupancyService,
-  favoriteRepository,
-  notificationsService,
-  placeEnrichmentService,
-});
+const placesService = decorateService(
+  new PlacesService({
+    placeRepository,
+    cache,
+    occupancyService,
+    favoriteRepository,
+    notificationsService,
+    placeEnrichmentService,
+  }),
+  'PlacesService'
+);
 
 module.exports = { placeRepository, placesService };

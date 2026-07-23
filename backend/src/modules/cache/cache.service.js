@@ -1,4 +1,5 @@
 const { getRedisClient } = require('./redis.client');
+const logger = require('../../common/logging/logger');
 
 /**
  * Cache-aside helper: cache'te varsa döner, yoksa fetchFn'i çalıştırıp sonucu cache'ler.
@@ -13,7 +14,7 @@ async function getOrSet(key, ttlSeconds, fetchFn) {
       return JSON.parse(cached);
     }
   } catch (err) {
-    console.warn(`Cache okuma başarısız (${key}):`, err.message);
+    logger.warn(`Cache okuma başarısız (${key})`, err.message);
   }
 
   const fresh = await fetchFn();
@@ -21,7 +22,7 @@ async function getOrSet(key, ttlSeconds, fetchFn) {
   try {
     await redis.set(key, JSON.stringify(fresh), 'EX', ttlSeconds);
   } catch (err) {
-    console.warn(`Cache yazma başarısız (${key}):`, err.message);
+    logger.warn(`Cache yazma başarısız (${key})`, err.message);
   }
 
   return fresh;
@@ -35,7 +36,7 @@ async function invalidate(pattern) {
       await redis.del(...keys);
     }
   } catch (err) {
-    console.warn(`Cache invalidation başarısız (${pattern}):`, err.message);
+    logger.warn(`Cache invalidation başarısız (${pattern})`, err.message);
   }
 }
 
@@ -44,7 +45,7 @@ async function del(key) {
   try {
     await redis.del(key);
   } catch (err) {
-    console.warn(`Cache silme başarısız (${key}):`, err.message);
+    logger.warn(`Cache silme başarısız (${key})`, err.message);
   }
 }
 

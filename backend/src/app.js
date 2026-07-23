@@ -16,12 +16,14 @@ const notificationsRoutes = require('./modules/notifications/infrastructure/noti
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./common/filters/error.filter');
 const { generalLimiter } = require('./common/guards/rate-limit.guard');
+const requestLogger = require('./common/logging/requestLogger');
 
 function createApp() {
   const app = express();
 
   app.use(cors({ origin: parseCorsOrigin(process.env.CORS_ORIGIN) }));
   app.use(express.json());
+  app.use(requestLogger);
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   app.use('/api', generalLimiter);
 
