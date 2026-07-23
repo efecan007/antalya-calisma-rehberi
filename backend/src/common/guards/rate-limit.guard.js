@@ -18,7 +18,7 @@ const generalLimiter = rateLimit({
 // Brute-force şifre denemelerine karşı register/login için daha sıkı limit.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   skip: skipInTest,
