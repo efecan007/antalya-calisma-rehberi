@@ -44,6 +44,28 @@ async function me(req, res, next) {
   }
 }
 
+async function updateAvatar(req, res, next) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Fotoğraf zorunludur' });
+    }
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const user = await authService.updateAvatar({ userId: req.user.id, avatarUrl });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function removeAvatar(req, res, next) {
+  try {
+    const user = await authService.removeAvatar({ userId: req.user.id });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // JWT stateless olduğu için sunucu tarafında iptal edilecek bir oturum yok;
 // bu endpoint yalnızca istemcinin token'ı bıraktığını doğrulamak için var.
 function logout(_req, res) {
@@ -141,6 +163,8 @@ module.exports = {
   register,
   login,
   me,
+  updateAvatar,
+  removeAvatar,
   logout,
   firebaseLogin,
   linkedinRedirect,

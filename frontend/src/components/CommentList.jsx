@@ -2,13 +2,7 @@ import { useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-
-const API_ORIGIN = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '');
-
-function resolvePhotoUrl(url) {
-  if (!url) return null;
-  return url.startsWith('http') ? url : `${API_ORIGIN}${url}`;
-}
+import { resolveUploadUrl } from '../lib/media';
 
 export default function CommentList({ comments, onChanged }) {
   const { user } = useAuth();
@@ -161,7 +155,7 @@ export default function CommentList({ comments, onChanged }) {
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
                 {comment.photoUrl && (
                   <img
-                    src={resolvePhotoUrl(comment.photoUrl)}
+                    src={resolveUploadUrl(comment.photoUrl)}
                     alt={t('comment.photoAlt')}
                     className="mt-2 h-40 w-auto max-w-full object-cover rounded-lg"
                   />

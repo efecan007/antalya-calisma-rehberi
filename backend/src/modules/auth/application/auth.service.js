@@ -121,6 +121,21 @@ class AuthService {
     }
     return user.toPublicJSON();
   }
+
+  async updateAvatar({ userId, avatarUrl }) {
+    if (!avatarUrl) {
+      throw new ValidationError('avatarUrl zorunludur');
+    }
+    const updated = await this.userRepository.update(userId, { avatarUrl });
+    const user = updated instanceof User ? updated : new User(updated);
+    return user.toPublicJSON();
+  }
+
+  async removeAvatar({ userId }) {
+    const updated = await this.userRepository.update(userId, { avatarUrl: null });
+    const user = updated instanceof User ? updated : new User(updated);
+    return user.toPublicJSON();
+  }
 }
 
 module.exports = AuthService;

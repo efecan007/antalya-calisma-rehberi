@@ -48,6 +48,18 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
+  async function updateAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const { data } = await apiClient.patch('/auth/me/avatar', formData);
+    setUser(data);
+  }
+
+  async function removeAvatar() {
+    const { data } = await apiClient.delete('/auth/me/avatar');
+    setUser(data);
+  }
+
   async function logout() {
     try {
       await apiClient.post('/auth/logout');
@@ -61,7 +73,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, loginWithFirebase, logout }}
+      value={{ user, loading, login, register, loginWithFirebase, logout, updateAvatar, removeAvatar }}
     >
       {children}
     </AuthContext.Provider>

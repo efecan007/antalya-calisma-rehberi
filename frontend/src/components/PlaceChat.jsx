@@ -4,6 +4,7 @@ import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getSocket } from '../lib/socket';
+import UserAvatar from './UserAvatar';
 
 const POLL_INTERVAL_MS = 5000;
 const TYPING_STOP_DELAY_MS = 2000;
@@ -173,9 +174,13 @@ export default function PlaceChat({ placeId }) {
             {messages.map((m) => {
               const mine = m.userId === user.id;
               return (
-                <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  key={m.id}
+                  className={`flex items-end gap-1.5 ${mine ? 'justify-end flex-row-reverse' : 'justify-start'}`}
+                >
+                  <UserAvatar avatarUrl={m.user?.avatarUrl} name={m.user?.name} size="sm" />
                   <div
-                    className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${
+                    className={`max-w-[75%] rounded-lg px-3 py-1.5 text-sm ${
                       mine ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-800'
                     }`}
                   >

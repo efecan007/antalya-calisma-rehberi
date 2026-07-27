@@ -1,6 +1,6 @@
 const MessageRepository = require('../domain/MessageRepository');
 
-const USER_SELECT = { id: true, name: true };
+const USER_SELECT = { id: true, name: true, avatarUrl: true };
 
 class PrismaMessageRepository extends MessageRepository {
   constructor(prisma) {
