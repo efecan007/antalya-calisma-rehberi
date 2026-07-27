@@ -105,8 +105,6 @@ const translations = {
       internet4plus: '4+ İnternet Hızı',
       allNoise: 'Tüm Sessizlik Seviyeleri',
       noisePrefix: 'Sessizlik',
-      allOutlet: 'Tüm Priz Durumları',
-      outletPrefix: 'Priz',
       clearFilters: 'Filtreleri temizle ({count})',
     },
     place: {
@@ -144,7 +142,6 @@ const translations = {
       workingHours: 'Çalışma Saatleri:',
       phone: 'Telefon:',
       website: 'Web Sitesi:',
-      outletPrefix: 'Priz:',
       noisePrefix: 'Sessizlik:',
       reviewsHeading: 'Değerlendirmeler',
       commentsHeading: 'Yorumlar',
@@ -490,8 +487,6 @@ const translations = {
       internet4plus: '4+ Internet Speed',
       allNoise: 'All Quietness Levels',
       noisePrefix: 'Quietness',
-      allOutlet: 'All Outlet Levels',
-      outletPrefix: 'Outlets',
       clearFilters: 'Clear filters ({count})',
     },
     place: {
@@ -529,7 +524,6 @@ const translations = {
       workingHours: 'Working Hours:',
       phone: 'Phone:',
       website: 'Website:',
-      outletPrefix: 'Outlets:',
       noisePrefix: 'Quietness:',
       reviewsHeading: 'Reviews',
       commentsHeading: 'Comments',

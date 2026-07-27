@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { REGIONS, PLACE_TYPES, LEVEL_OPTIONS, NOISE_LEVEL_OPTIONS } from '../constants';
+import { REGIONS, PLACE_TYPES, NOISE_LEVEL_OPTIONS } from '../constants';
 import { useLanguage } from '../context/LanguageContext';
 
 const selectClass = 'border border-gray-200 bg-white rounded-md px-2 py-1.5 text-sm text-gray-700';
@@ -87,14 +87,6 @@ export default function FilterBar({ filters, onChange }) {
           {NOISE_LEVEL_OPTIONS.map((l) => (
             <option key={l.value} value={l.value}>
               {t('filter.noisePrefix')}: {t(`enum.noiseLevel.${l.value}`)}
-            </option>
-          ))}
-        </select>
-        <select value={filters.outletLevel} onChange={(e) => update('outletLevel', e.target.value)} className={selectClass}>
-          <option value="">{t('filter.allOutlet')}</option>
-          {LEVEL_OPTIONS.map((l) => (
-            <option key={l.value} value={l.value}>
-              {t('filter.outletPrefix')}: {t(`enum.level.${l.value}`)}
             </option>
           ))}
         </select>

@@ -14,7 +14,6 @@ const DEFAULT_FILTERS = {
   minRating: '',
   minInternetSpeed: '',
   noiseLevel: '',
-  outletLevel: '',
   sort: '',
 };
 

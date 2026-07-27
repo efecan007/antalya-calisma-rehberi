@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { regionLabel, typeLabel, levelLabel, noiseLevelLabel, RATING_CRITERIA } from '../constants';
+import { regionLabel, typeLabel, noiseLevelLabel, RATING_CRITERIA } from '../constants';
 import RatingStars from '../components/RatingStars';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
@@ -173,9 +173,6 @@ export default function PlaceDetailPage() {
           )}
 
           <div className="flex flex-wrap gap-2 mt-4">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
-              {t('detail.outletPrefix')} {levelLabel(place.outletLevel, t)}
-            </span>
             <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
               {t('detail.noisePrefix')} {noiseLevelLabel(place.noiseLevel, t)}
             </span>
