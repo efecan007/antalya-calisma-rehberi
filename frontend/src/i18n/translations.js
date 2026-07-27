@@ -291,6 +291,10 @@ const translations = {
       start: 'Yayın Başlat',
       noCamera: 'Kamera bulunamadı ya da izin verilmedi.',
       cameraError: 'Kameraya erişilemedi. Tarayıcı izinlerini kontrol edin.',
+      commentsEmpty: 'Henüz yorum yok. İlk yorumu sen yaz!',
+      commentPlaceholder: 'Bir yorum yaz...',
+      sendHeart: 'Kalp gönder',
+      loginToCommentPre: 'Yorum yapmak için',
     },
     map: {
       yourLocation: 'Konumunuz',
@@ -672,6 +676,10 @@ const translations = {
       start: 'Start Broadcast',
       noCamera: 'Camera not found or permission denied.',
       cameraError: 'Could not access the camera. Check your browser permissions.',
+      commentsEmpty: 'No comments yet. Be the first to comment!',
+      commentPlaceholder: 'Write a comment...',
+      sendHeart: 'Send heart',
+      loginToCommentPre: 'To comment,',
     },
     map: {
       yourLocation: 'Your location',
