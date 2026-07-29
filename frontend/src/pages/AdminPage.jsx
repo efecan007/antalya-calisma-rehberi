@@ -23,19 +23,24 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [reportedComments, setReportedComments] = useState([]);
+  const [billingStats, setBillingStats] = useState(null);
+  const [premiumUsers, setPremiumUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadAll() {
     setLoading(true);
-    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes, messagesRes, reportedRes] = await Promise.all([
-      apiClient.get('/admin/dashboard'),
-      apiClient.get('/places'),
-      apiClient.get('/admin/suggestions'),
-      apiClient.get('/reviews'),
-      apiClient.get('/admin/users'),
-      apiClient.get('/messages'),
-      apiClient.get('/admin/comments/reports'),
-    ]);
+    const [statsRes, placesRes, pendingRes, reviewsRes, usersRes, messagesRes, reportedRes, billingStatsRes, premiumUsersRes] =
+      await Promise.all([
+        apiClient.get('/admin/dashboard'),
+        apiClient.get('/places'),
+        apiClient.get('/admin/suggestions'),
+        apiClient.get('/reviews'),
+        apiClient.get('/admin/users'),
+        apiClient.get('/messages'),
+        apiClient.get('/admin/comments/reports'),
+        apiClient.get('/admin/billing/stats'),
+        apiClient.get('/admin/billing/users'),
+      ]);
     setStats(statsRes.data);
     setPlaces(placesRes.data);
     setPendingPlaces(pendingRes.data);
@@ -43,7 +48,15 @@ export default function AdminPage() {
     setUsers(usersRes.data);
     setMessages(messagesRes.data);
     setReportedComments(reportedRes.data);
+    setBillingStats(billingStatsRes.data);
+    setPremiumUsers(premiumUsersRes.data);
     setLoading(false);
+  }
+
+  async function cancelSubscription(userId) {
+    if (!window.confirm(t('admin.confirmCancelSub'))) return;
+    await apiClient.post(`/admin/billing/users/${userId}/cancel`);
+    loadAll();
   }
 
   useEffect(() => {
@@ -116,6 +129,55 @@ export default function AdminPage() {
               <p className="text-xs text-gray-500">{t(labelKey)}</p>
             </div>
           ))}
+        </section>
+      )}
+
+      {/* Premium yönetimi */}
+      {billingStats && (
+        <section>
+          <h2 className="font-medium text-gray-900 mb-3">{t('admin.premiumTitle')}</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+            <StatCard value={billingStats.premiumCount} label={t('admin.premTotal')} />
+            <StatCard value={billingStats.activeCount} label={t('admin.premActive')} />
+            <StatCard value={billingStats.trialUsersCount} label={t('admin.premTrial')} />
+            <StatCard value={billingStats.canceledCount} label={t('admin.premCanceled')} />
+            <StatCard
+              value={`${(billingStats.monthlyRevenue.amount / 100).toLocaleString('tr-TR')} ₺`}
+              label={t('admin.premRevenue')}
+            />
+            <StatCard value={billingStats.upcomingRenewals} label={t('admin.premUpcoming')} />
+          </div>
+
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            {t('admin.premUsers', { count: premiumUsers.length })}
+          </h3>
+          {premiumUsers.length === 0 ? (
+            <p className="text-sm text-gray-500">{t('admin.premNoUsers')}</p>
+          ) : (
+            <div className="space-y-2">
+              {premiumUsers.map((u) => (
+                <div key={u.userId} className="bg-white shadow-card rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{u.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${u.isPremium ? 'bg-brand-50 text-brand-700 border border-brand-100' : 'bg-gray-100 text-gray-500'}`}>
+                      {t(`profile.status${u.status}`)}
+                    </span>
+                    {u.isPremium && u.status !== 'CANCELED' && (
+                      <button
+                        onClick={() => cancelSubscription(u.userId)}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        {t('admin.premCancel')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -295,6 +357,16 @@ export default function AdminPage() {
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+// Premium yönetimi istatistik kartı.
+function StatCard({ value, label }) {
+  return (
+    <div className="bg-white shadow-card rounded-xl p-3 text-center">
+      <p className="text-xl font-semibold text-gray-900">{value}</p>
+      <p className="text-xs text-gray-500">{label}</p>
     </div>
   );
 }

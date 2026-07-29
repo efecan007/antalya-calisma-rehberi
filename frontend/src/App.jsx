@@ -5,6 +5,7 @@ import CheckInReminderBanner from './components/CheckInReminderBanner';
 import PlaceMatchBubble from './components/PlaceMatchBubble';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import PremiumRoute from './components/PremiumRoute';
 import HomePage from './pages/HomePage';
 import PlaceListPage from './pages/PlaceListPage';
 import MapPage from './pages/MapPage';
@@ -22,6 +23,7 @@ import SocialFeedPage from './pages/SocialFeedPage';
 import SocialPostDetailPage from './pages/SocialPostDetailPage';
 import SocialProfilePage from './pages/SocialProfilePage';
 import SocialNotificationsPage from './pages/SocialNotificationsPage';
+import ProPage from './pages/ProPage';
 
 export default function App() {
   useAutoReloadOnNewVersion();
@@ -37,15 +39,37 @@ export default function App() {
           <Route path="/yayin" element={<StreamRoomsPage />} />
           <Route path="/yayin/:roomId" element={<StreamPage />} />
           <Route path="/mekan/:id" element={<PlaceDetailPage />} />
-          <Route path="/sosyal" element={<SocialFeedPage />} />
-          <Route path="/sosyal/gonderi/:id" element={<SocialPostDetailPage />} />
-          <Route path="/sosyal/kullanici/:userId" element={<SocialProfilePage />} />
+          <Route path="/pro" element={<ProPage />} />
+          <Route
+            path="/sosyal"
+            element={
+              <PremiumRoute>
+                <SocialFeedPage />
+              </PremiumRoute>
+            }
+          />
+          <Route
+            path="/sosyal/gonderi/:id"
+            element={
+              <PremiumRoute>
+                <SocialPostDetailPage />
+              </PremiumRoute>
+            }
+          />
+          <Route
+            path="/sosyal/kullanici/:userId"
+            element={
+              <PremiumRoute>
+                <SocialProfilePage />
+              </PremiumRoute>
+            }
+          />
           <Route
             path="/sosyal/bildirimler"
             element={
-              <ProtectedRoute>
+              <PremiumRoute>
                 <SocialNotificationsPage />
-              </ProtectedRoute>
+              </PremiumRoute>
             }
           />
           <Route path="/giris" element={<LoginPage />} />

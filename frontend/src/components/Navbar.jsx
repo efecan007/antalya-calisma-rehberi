@@ -49,6 +49,16 @@ export default function Navbar() {
           <NavLink to="/sosyal" className={linkClass}>
             {t('nav.social')}
           </NavLink>
+          <NavLink
+            to="/pro"
+            className={({ isActive }) =>
+              `px-2.5 py-1 text-sm font-medium rounded-full transition ${
+                isActive ? 'bg-brand-600 text-white' : 'text-brand-700 bg-brand-50 hover:bg-brand-100'
+              }`
+            }
+          >
+            {t('nav.pro')}
+          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass}>
@@ -124,6 +134,9 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/sosyal" className={linkClass} onClick={closeMenu}>
             {t('nav.social')}
+          </NavLink>
+          <NavLink to="/pro" className={linkClass} onClick={closeMenu}>
+            {t('nav.pro')}
           </NavLink>
           {user ? (
             <>

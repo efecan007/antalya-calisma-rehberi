@@ -5,6 +5,7 @@ import { timeAgo } from '../../lib/timeAgo';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import * as socialApi from '../../api/social';
+import * as billingApi from '../../api/billing';
 
 const POLL_INTERVAL_MS = 30000;
 
@@ -31,18 +32,28 @@ export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [premium, setPremium] = useState(false);
   const containerRef = useRef(null);
 
   function fetchUnread() {
     socialApi.getUnreadNotificationCount().then((d) => setUnreadCount(d.count)).catch(() => {});
   }
 
+  // Bildirimler sosyal (premium) bir özelliktir; premium olmayanlarda çan gizlenir.
   useEffect(() => {
-    if (!user) return undefined;
+    if (!user) {
+      setPremium(false);
+      return;
+    }
+    billingApi.getStatus().then((s) => setPremium(Boolean(s.isPremium))).catch(() => setPremium(false));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !premium) return undefined;
     fetchUnread();
     const interval = setInterval(fetchUnread, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, premium]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -69,7 +80,7 @@ export default function NotificationDropdown() {
     }
   }
 
-  if (!user) return null;
+  if (!user || !premium) return null;
 
   return (
     <div className="relative" ref={containerRef}>
