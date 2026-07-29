@@ -57,6 +57,12 @@ enum NotificationType {
   CHAT_REPLY
 }
 
+enum SocialNotificationType {
+  POST_LIKE
+  POST_COMMENT
+  NEW_FOLLOWER
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -70,15 +76,25 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  places    Place[]
-  reviews           Review[]
-  favorites         Favorite[]
-  occupancyCheckIns OccupancyCheckIn[]
-  messages          PlaceMessage[]
+  places              Place[]
+  reviews             Review[]
+  favorites           Favorite[]
+  occupancyCheckIns   OccupancyCheckIn[]
+  messages            PlaceMessage[]
   comments            Comment[]
   commentHelpfulVotes CommentHelpfulVote[]
   commentReports      CommentReport[]
   notifications       Notification[]
+
+  // Social Feed modülü
+  socialProfile            SocialProfile?
+  socialPosts              SocialPost[]
+  postLikes                PostLike[]
+  postComments             PostComment[]
+  following                Follow[]             @relation("Follower")
+  followers                Follow[]             @relation("Following")
+  socialNotifications      SocialNotification[] @relation("Recipient")
+  socialNotificationsActed SocialNotification[] @relation("Actor")
 
   @@unique([provider, providerId])
   @@map("users")
@@ -122,20 +138,20 @@ model Place {
 }
 
 model Review {
-  id               Int      @id @default(autoincrement())
-  placeId          Int      @map("place_id")
-  place            Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  userId           Int      @map("user_id")
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  internetSpeed    Int      @map("internet_rating")
-  outletCount      Int      @map("socket_rating")
-  noiseLevel       Int      @map("quietness_rating")
-  coffeeQuality    Int      @map("coffee_rating")
-  workEnvironment  Int      @map("work_environment")
-  priceLevel       Int      @map("price_level")
-  overallRating    Int      @map("rating")
-  comment          String?
-  createdAt        DateTime @default(now()) @map("created_at")
+  id              Int      @id @default(autoincrement())
+  placeId         Int      @map("place_id")
+  place           Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId          Int      @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  internetSpeed   Int      @map("internet_rating")
+  outletCount     Int      @map("socket_rating")
+  noiseLevel      Int      @map("quietness_rating")
+  coffeeQuality   Int      @map("coffee_rating")
+  workEnvironment Int      @map("work_environment")
+  priceLevel      Int      @map("price_level")
+  overallRating   Int      @map("rating")
+  comment         String?
+  createdAt       DateTime @default(now()) @map("created_at")
 
   @@unique([placeId, userId])
   @@map("reviews")
@@ -243,4 +259,112 @@ model PlaceMessage {
 
   @@index([placeId, createdAt])
   @@map("place_messages")
+}
+
+// ===========================================================================
+// Social Feed modülü — Instagram benzeri sosyal medya bölümü.
+// Mevcut Notification modeli tamamen mekan (Place) bağlamlıdır; sosyal
+// bildirimler post/kullanıcı bağlamlı olduğundan ayrı bir SocialNotification
+// tablosu kullanılır ve çalışan bildirim sistemi bozulmaz.
+// ===========================================================================
+
+model SocialProfile {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio       String?
+  // Admin bir kullanıcıyı sosyal bölümde engellediğinde işaretlenir; engelli
+  // kullanıcı paylaşım/yorum/beğeni/takip yapamaz (mevcut auth sistemi korunur).
+  isBlocked Boolean  @default(false) @map("is_blocked")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("social_profiles")
+}
+
+model SocialPost {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caption   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  images        PostImage[]
+  likes         PostLike[]
+  comments      PostComment[]
+  notifications SocialNotification[]
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("social_posts")
+}
+
+model PostImage {
+  id       Int        @id @default(autoincrement())
+  postId   Int        @map("post_id")
+  post     SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url      String
+  // Galeri sıralaması: fotoğrafların yüklenme/gösterim sırası.
+  position Int        @default(0)
+
+  @@index([postId, position])
+  @@map("post_images")
+}
+
+model PostLike {
+  id        Int        @id @default(autoincrement())
+  postId    Int        @map("post_id")
+  post      SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int        @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        Int        @id @default(autoincrement())
+  postId    Int        @map("post_id")
+  post      SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int        @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int      @map("follower_id")
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId Int      @map("following_id")
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model SocialNotification {
+  id        Int                    @id @default(autoincrement())
+  // Bildirimi alan kullanıcı.
+  userId    Int                    @map("user_id")
+  user      User                   @relation("Recipient", fields: [userId], references: [id], onDelete: Cascade)
+  // Eylemi yapan kullanıcı (beğenen/yorum yapan/takip eden).
+  actorId   Int                    @map("actor_id")
+  actor     User                   @relation("Actor", fields: [actorId], references: [id], onDelete: Cascade)
+  type      SocialNotificationType
+  postId    Int?                   @map("post_id")
+  post      SocialPost?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  isRead    Boolean                @default(false) @map("is_read")
+  createdAt DateTime               @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("social_notifications")
 }

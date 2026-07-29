@@ -18,6 +18,10 @@ import AddPlacePage from './pages/AddPlacePage';
 import ProfilePage from './pages/ProfilePage';
 import FavoritesPage from './pages/FavoritesPage';
 import AdminPage from './pages/AdminPage';
+import SocialFeedPage from './pages/SocialFeedPage';
+import SocialPostDetailPage from './pages/SocialPostDetailPage';
+import SocialProfilePage from './pages/SocialProfilePage';
+import SocialNotificationsPage from './pages/SocialNotificationsPage';
 
 export default function App() {
   useAutoReloadOnNewVersion();
@@ -33,6 +37,17 @@ export default function App() {
           <Route path="/yayin" element={<StreamRoomsPage />} />
           <Route path="/yayin/:roomId" element={<StreamPage />} />
           <Route path="/mekan/:id" element={<PlaceDetailPage />} />
+          <Route path="/sosyal" element={<SocialFeedPage />} />
+          <Route path="/sosyal/gonderi/:id" element={<SocialPostDetailPage />} />
+          <Route path="/sosyal/kullanici/:userId" element={<SocialProfilePage />} />
+          <Route
+            path="/sosyal/bildirimler"
+            element={
+              <ProtectedRoute>
+                <SocialNotificationsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/giris/linkedin" element={<LinkedInCallbackPage />} />
           <Route path="/kayit" element={<RegisterPage />} />

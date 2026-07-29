@@ -33,6 +33,7 @@ backend/src/
     ├── reviews/                yorum + puan — reviews.service.js
     ├── favorites/              favori ekle/çıkar/listele — favorites.service.js
     ├── admin/                  dashboard istatistikleri, kullanıcı yönetimi, yorum moderasyonu — admin.service.js
+    ├── social/                 Instagram benzeri Social Feed (gönderi/beğeni/yorum/takip/bildirim) — social.service.js
     └── cache/                  Redis client + cache-aside helper — cache.service.js
 ```
 
@@ -305,6 +306,53 @@ npm install        # kökte, bir kez — husky commit-msg hook'unu kurar
 git commit -m "feat(places): add sorting by rating"   # ✅ geçer
 git commit -m "add sorting"                            # ❌ reddedilir (scope yok, type yok)
 ```
+
+## Social Feed Modülü
+
+Instagram benzeri bir sosyal medya bölümü. Mevcut Modular Monolith + Clean Architecture yapısını bozmadan, tamamen ayrı bir `modules/social` modülü olarak eklenmiştir (kendi `domain` / `application` / `infrastructure` katmanlarıyla). Frontend'de `/sosyal` altında yaşar; çalışan ana sayfa (`/`) değiştirilmemiştir.
+
+**Özellikler**
+
+- **Gönderi**: Çoklu fotoğraf (galeri, en fazla 10) + açıklama (caption) ile paylaşım; kendi gönderini düzenleme/silme.
+- **Akış (Feed)**: En yeni üstte; "Tümü" veya "Takip ettiklerim" olarak filtrelenir. Redis ile cache'lenir.
+- **Beğeni**: Bir kullanıcı bir gönderiyi yalnızca bir kez beğenebilir (`@@unique([postId, userId])`); tekrar tıklayınca kaldırır; sayaç anlık güncellenir (optimistic UI).
+- **Yorum**: Yorum yaz / kendi yorumunu sil; kullanıcı adı + profil fotoğrafı + tarih gösterilir.
+- **Profil**: Biyografi + türetilmiş istatistikler (gönderi sayısı, toplam beğeni, takipçi/takip sayısı). İstatistikler sayaç sütununda saklanmaz, okuma anında hesaplanır.
+- **Takip**: Takip et / takipten çık; profilde Follow/Following butonu.
+- **Bildirim**: "gönderini beğendi / yorum yaptı / seni takip etti" — okundu/okunmadı durumuyla. Mevcut mekan bildirim sisteminden ayrı bir `SocialNotification` tablosu kullanır (mevcut `Notification` tamamen mekan bağlamlıdır, bozulmamıştır).
+- **Admin**: Uygunsuz gönderi/yorum silme, kullanıcıyı sosyal bölümde engelleme (engelli kullanıcı paylaşım/yorum/beğeni/takip yapamaz).
+
+**Auth**: Mevcut JWT sistemi aynen kullanılır. Görüntüleme herkese açıktır; paylaşım/yorum/beğeni/takip için giriş zorunludur (`requireAuth`).
+
+**Dosya yükleme**: Fotoğraflar backend'in `uploads/social/` klasörüne yüklenir (multer). Storage bir arayüz (`StorageProvider`) arkasına soyutlanmıştır; ileride AWS S3 / Cloudinary'ye geçmek için yalnızca yeni bir provider yazıp `SOCIAL_STORAGE_DRIVER` ile seçmek yeterlidir — service/controller değişmez.
+
+**Cache**: Feed yanıtları Redis'te cache'lenir (`social:feed:*`, TTL 30s). Yeni gönderi, yorum veya beğeni geldiğinde ilgili feed cache'leri invalide edilir. İzleyiciye özel "beğendim mi" bilgisi cache'lenmez, her istekte taze hesaplanır — böylece aynı sayfa tüm kullanıcılarca paylaşılabilir.
+
+**Şema (Prisma)**: `SocialProfile`, `SocialPost`, `PostImage`, `PostLike`, `PostComment`, `Follow`, `SocialNotification` tabloları; tümü doğru foreign key ve `onDelete: Cascade` kurallarıyla `User`/`SocialPost`'a bağlıdır (bir kullanıcı/gönderi silinince ilgili beğeni/yorum/görsel/bildirim de silinir). Şema `prisma db push` ile uygulanır (proje migration dosyası kullanmaz; `backend/Dockerfile` başlangıçta `prisma db push` çalıştırır).
+
+**API uç noktaları**
+
+| Metot & Yol | Açıklama | Auth |
+|---|---|---|
+| `POST /api/social/posts` | Gönderi oluştur (multipart, `images[]` + `caption`) | ✅ |
+| `GET /api/social/feed?following=&page=` | Akış (tümü / takip edilenler, sayfalı) | opsiyonel |
+| `GET /api/social/posts/:id` | Tek gönderi | opsiyonel |
+| `PATCH /api/social/posts/:id` | Açıklamayı düzenle | ✅ (sahibi) |
+| `DELETE /api/social/posts/:id` | Gönderi sil | ✅ (sahibi) |
+| `POST /api/social/posts/:id/like` · `DELETE .../like` | Beğen / beğeniyi kaldır | ✅ |
+| `GET /api/social/posts/:id/comments` · `POST .../comments` | Yorumları listele / ekle | ekleme ✅ |
+| `DELETE /api/social/comments/:id` | Yorum sil | ✅ (sahibi) |
+| `POST /api/social/follow/:userId` · `DELETE .../follow/:userId` | Takip et / bırak | ✅ |
+| `GET /api/social/profile/:userId` | Profil + gönderiler | opsiyonel |
+| `PATCH /api/social/profile` | Kendi biyografini güncelle | ✅ |
+| `GET /api/social/notifications` · `.../unread-count` | Bildirimler / okunmamış sayısı | ✅ |
+| `PATCH /api/social/notifications/:id/read` | Bildirimi okundu işaretle | ✅ |
+| `DELETE /api/admin/social/posts/:id` · `.../comments/:id` | Admin: gönderi/yorum sil | ✅ admin |
+| `PATCH /api/admin/social/users/:userId/block` · `.../unblock` | Admin: kullanıcı engelle/kaldır | ✅ admin |
+
+> Not: `:userId` profil tanımlayıcısı olarak kullanıcının **id**'sidir. Mevcut `User` modelinde ayrı bir `username` alanı olmadığı için (çalışan model bozulmadan) profil id üzerinden çözümlenir.
+
+**Frontend sayfaları**: `/sosyal` (Feed), `/sosyal/gonderi/:id` (Post Detail), `/sosyal/kullanici/:userId` (Profil), `/sosyal/bildirimler` (Bildirimler). Bileşenler: `PostCard`, `LikeButton`, `CommentSection`, `CommentItem`, `CreatePostModal`, `PhotoUploader`, `ProfileHeader`, `NotificationDropdown` (`components/social/`). Tailwind ile responsive; mobilde Instagram benzeri tek sütun akış, desktopta ortalanmış modern yerleşim.
 
 ## Future Improvements
 

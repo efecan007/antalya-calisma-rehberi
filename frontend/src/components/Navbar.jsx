@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import NotificationBell from './NotificationBell';
+import NotificationDropdown from './social/NotificationDropdown';
 import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -45,6 +46,9 @@ export default function Navbar() {
           <NavLink to="/yayin" className={linkClass}>
             {t('nav.stream')}
           </NavLink>
+          <NavLink to="/sosyal" className={linkClass}>
+            {t('nav.social')}
+          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass}>
@@ -61,6 +65,7 @@ export default function Navbar() {
               <NavLink to="/profil" className={linkClass}>
                 {user.name}
               </NavLink>
+              <NotificationDropdown />
               <NotificationBell />
               <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-brand-700 transition">
                 {t('nav.logout')}
@@ -117,6 +122,9 @@ export default function Navbar() {
           <NavLink to="/yayin" className={linkClass} onClick={closeMenu}>
             {t('nav.stream')}
           </NavLink>
+          <NavLink to="/sosyal" className={linkClass} onClick={closeMenu}>
+            {t('nav.social')}
+          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass} onClick={closeMenu}>
@@ -133,7 +141,8 @@ export default function Navbar() {
               <NavLink to="/profil" className={linkClass} onClick={closeMenu}>
                 {user.name}
               </NavLink>
-              <div className="py-1">
+              <div className="flex items-center gap-3 py-1">
+                <NotificationDropdown />
                 <NotificationBell />
               </div>
               <button onClick={handleLogout} className="text-left text-sm text-gray-600 hover:text-brand-700 py-1">
