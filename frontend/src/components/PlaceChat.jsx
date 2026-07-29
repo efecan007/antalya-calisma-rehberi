@@ -176,9 +176,9 @@ export default function PlaceChat({ placeId }) {
               return (
                 <div
                   key={m.id}
-                  className={`flex items-end gap-1.5 ${mine ? 'justify-end flex-row-reverse' : 'justify-start'}`}
+                  className={`flex items-end gap-1.5 ${mine ? 'justify-end' : 'justify-start'}`}
                 >
-                  <UserAvatar avatarUrl={m.user?.avatarUrl} name={m.user?.name} size="sm" />
+                  {!mine && <UserAvatar avatarUrl={m.user?.avatarUrl} name={m.user?.name} size="sm" />}
                   <div
                     className={`max-w-[75%] rounded-lg px-3 py-1.5 text-sm ${
                       mine ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-800'
@@ -187,6 +187,7 @@ export default function PlaceChat({ placeId }) {
                     {!mine && <p className="text-xs font-medium text-brand-700 mb-0.5">{m.user?.name || t('review.userFallback')}</p>}
                     <p className="break-words">{m.content}</p>
                   </div>
+                  {mine && <UserAvatar avatarUrl={m.user?.avatarUrl} name={m.user?.name} size="sm" />}
                 </div>
               );
             })}

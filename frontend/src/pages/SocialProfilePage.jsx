@@ -58,6 +58,9 @@ export default function SocialProfilePage() {
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
       <div className="max-w-2xl mx-auto px-3 sm:px-4 py-5 space-y-5">
+        <Link to="/sosyal" className="text-sm text-gray-500 hover:text-brand-700 transition inline-block">
+          ← {t('social.backToFeed')}
+        </Link>
         <ProfileHeader profile={profile} onProfileChange={setProfile} />
 
         {/* Görünüm değiştirici */}

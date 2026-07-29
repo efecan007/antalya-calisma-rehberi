@@ -58,12 +58,20 @@ export default function SocialFeedPage() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold text-gray-900">{t('social.feed')}</h1>
           {user && (
-            <button
-              onClick={() => setModalOpen(true)}
-              className="bg-brand-600 text-white text-sm font-medium px-4 py-1.5 rounded-full hover:bg-brand-700 transition"
-            >
-              {t('social.createPost')}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/sosyal/kullanici/${user.id}`}
+                className="text-sm font-medium px-4 py-1.5 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-100 transition"
+              >
+                {t('social.myProfile')}
+              </Link>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="bg-brand-600 text-white text-sm font-medium px-4 py-1.5 rounded-full hover:bg-brand-700 transition"
+              >
+                {t('social.createPost')}
+              </button>
+            </div>
           )}
         </div>
 

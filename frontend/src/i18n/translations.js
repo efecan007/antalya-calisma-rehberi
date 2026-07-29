@@ -276,6 +276,7 @@ const translations = {
     social: {
       feed: 'Sosyal Akış',
       createPost: 'Gönderi Oluştur',
+      myProfile: 'Profilim',
       allPosts: 'Tümü',
       followingPosts: 'Takip Ettiklerim',
       feedEmpty: 'Henüz gönderi yok. İlk paylaşımı sen yap!',
@@ -702,6 +703,7 @@ const translations = {
     social: {
       feed: 'Social Feed',
       createPost: 'Create Post',
+      myProfile: 'My Profile',
       allPosts: 'All',
       followingPosts: 'Following',
       feedEmpty: 'No posts yet. Be the first to share!',
