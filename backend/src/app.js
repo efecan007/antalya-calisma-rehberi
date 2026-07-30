@@ -14,6 +14,7 @@ const adminRoutes = require('./modules/admin/infrastructure/admin.routes');
 const commentsRoutes = require('./modules/comments/infrastructure/comments.routes');
 const notificationsRoutes = require('./modules/notifications/infrastructure/notifications.routes');
 const socialRoutes = require('./modules/social/infrastructure/social.routes');
+const jobsRoutes = require('./modules/jobs/infrastructure/jobs.routes');
 const billingRoutes = require('./modules/billing/infrastructure/billing.routes');
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./common/filters/error.filter');
@@ -46,6 +47,7 @@ function createApp() {
   app.use('/api/comments', commentsRoutes);
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/social', socialRoutes);
+  app.use('/api/jobs', jobsRoutes);
   app.use('/api/billing', billingRoutes);
 
   app.use(notFoundHandler);

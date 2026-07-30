@@ -23,6 +23,7 @@ import SocialFeedPage from './pages/SocialFeedPage';
 import SocialPostDetailPage from './pages/SocialPostDetailPage';
 import SocialProfilePage from './pages/SocialProfilePage';
 import SocialNotificationsPage from './pages/SocialNotificationsPage';
+import JobsPage from './pages/JobsPage';
 import ProPage from './pages/ProPage';
 
 export default function App() {
@@ -69,6 +70,14 @@ export default function App() {
             element={
               <PremiumRoute>
                 <SocialNotificationsPage />
+              </PremiumRoute>
+            }
+          />
+          <Route
+            path="/sosyal/is-ilanlari"
+            element={
+              <PremiumRoute>
+                <JobsPage />
               </PremiumRoute>
             }
           />

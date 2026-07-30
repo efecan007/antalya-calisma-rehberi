@@ -77,6 +77,14 @@ enum SubscriptionStatus {
   EXPIRED
 }
 
+// İş ilanı başvurularının durumu. PENDING: başvuru alındı, değerlendiriliyor.
+// ACCEPTED: ilan sahibi başvuruyu kabul etti. REJECTED: reddedildi.
+enum JobApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -117,6 +125,10 @@ model User {
   payments            Payment[]
   invoices            Invoice[]
   trialUsage          TrialUsage?
+
+  // İş İlanları modülü
+  jobPostings     JobPosting[]
+  jobApplications JobApplication[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -524,4 +536,52 @@ model TrialUsage {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("trial_usages")
+}
+
+// ===========================================================================
+// İş İlanları modülü — sosyal bölümde kullanıcılar iş ilanı paylaşır, diğer
+// kullanıcılar kendi mesleklerini belirterek başvurur. Şirket ismi (companyName)
+// ve pozisyon (position) ilan paylaşırken zorunludur.
+// ===========================================================================
+
+model JobPosting {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName    String   @map("company_name")
+  position       String
+  // İlanın hedeflediği meslek/alan (opsiyonel — ör. "Yazılım Geliştirici").
+  profession     String?
+  description    String?
+  location       String?
+  // Çalışma biçimi: serbest metin (ör. "Tam zamanlı", "Uzaktan", "Yarı zamanlı").
+  employmentType String?  @map("employment_type")
+  isOpen         Boolean  @default(true) @map("is_open")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  applications JobApplication[]
+
+  @@index([isOpen, createdAt])
+  @@index([userId, createdAt])
+  @@map("job_postings")
+}
+
+model JobApplication {
+  id         Int                  @id @default(autoincrement())
+  jobId      Int                  @map("job_id")
+  job        JobPosting           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId     Int                  @map("user_id")
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Başvuranın kendi mesleği (zorunlu) — "kendi mesleğine göre başvuru".
+  profession String
+  message    String?
+  status     JobApplicationStatus @default(PENDING)
+  createdAt  DateTime             @default(now()) @map("created_at")
+
+  // Bir kullanıcı bir ilana yalnızca bir kez başvurabilir.
+  @@unique([jobId, userId])
+  @@index([jobId, createdAt])
+  @@index([userId, createdAt])
+  @@map("job_applications")
 }

@@ -65,6 +65,12 @@ export default function SocialFeedPage() {
               >
                 {t('social.myProfile')}
               </Link>
+              <Link
+                to="/sosyal/is-ilanlari"
+                className="text-sm font-medium px-4 py-1.5 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-100 transition"
+              >
+                {t('social.jobs')}
+              </Link>
               <button
                 onClick={() => setModalOpen(true)}
                 className="bg-brand-600 text-white text-sm font-medium px-4 py-1.5 rounded-full hover:bg-brand-700 transition"
