@@ -57,12 +57,6 @@ services:
       # Google Places API — mekan detaylarını zenginleştirir, tanımlı değilse
       # özellik sessizce devre dışı kalır.
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
-      # Premium/Billing ödeme sağlayıcısı. Varsayılan "stripe"; "manual" yalnızca
-      # yerel geliştirme/test içindir (gerçek Stripe olmadan yaşam döngüsünü denemek).
-      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stripe}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      STRIPE_PRICE_ID: ${STRIPE_PRICE_ID}
     ports:
       - "4000:4000"
     volumes:

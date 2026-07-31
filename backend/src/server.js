@@ -6,7 +6,6 @@ const { parseCorsOrigin } = require('./common/security/cors-origin');
 const { attachStreamingGateway } = require('./modules/streaming/infrastructure/streaming.gateway');
 const { attachChatGateway } = require('./modules/chat/infrastructure/chat.gateway');
 const { startLowOccupancyWatcher } = require('./jobs/lowOccupancyNotifier');
-const { startSubscriptionRenewer } = require('./jobs/subscriptionRenewer');
 const logger = require('./common/logging/logger');
 
 const app = createApp();
@@ -18,7 +17,6 @@ const io = new Server(server, {
 attachStreamingGateway(io);
 attachChatGateway(io);
 startLowOccupancyWatcher();
-startSubscriptionRenewer();
 
 const PORT = process.env.PORT || 4000;
 

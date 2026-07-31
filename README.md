@@ -33,8 +33,6 @@ backend/src/
     ├── reviews/                yorum + puan — reviews.service.js
     ├── favorites/              favori ekle/çıkar/listele — favorites.service.js
     ├── admin/                  dashboard istatistikleri, kullanıcı yönetimi, yorum moderasyonu — admin.service.js
-    ├── social/                 Instagram benzeri Social Feed (gönderi/beğeni/yorum/takip/bildirim) — social.service.js
-    ├── billing/                RemoteRehber Pro premium abonelik altyapısı — billing.service.js
     └── cache/                  Redis client + cache-aside helper — cache.service.js
 ```
 
@@ -217,18 +215,6 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 - `GET /api/admin/dashboard` — kullanıcı/mekan/bekleyen öneri/yorum/favori sayıları
 - `GET /api/admin/users`, `DELETE /api/admin/users/:id` (kendi hesabını silemez)
 - `GET /api/reviews` (yalnızca admin, moderasyon için tüm yorumlar)
-- `GET /api/admin/billing/stats`, `GET /api/admin/billing/users`, `POST /api/admin/billing/users/:userId/cancel` (yalnızca admin) — premium istatistikleri, premium kullanıcı listesi ve manuel iptal
-
-**Billing / Premium** (RemoteRehber Pro — tümü JWT gerekli; ayrıntı için "Premium / Billing Modülü" bölümü)
-- `GET /api/billing/status` — abonelik durumu (`isPremium`, `trialDaysLeft`, `trialUsed`, `lastPaymentAt`, dönem tarihleri)
-- `GET /api/billing/history` — abonelik durum geçişleri geçmişi
-- `GET /api/billing/invoices` — kullanıcının faturaları
-- `POST /api/billing/start-trial` — 15 günlük ücretsiz deneme (tek kullanımlık)
-- `POST /api/billing/create-subscription` (alias: `POST /api/billing/subscribe`) — kart ekleyip ücretli aboneliği başlatır
-- `POST /api/billing/cancel` — dönem sonunda iptal (dönem sonuna kadar premium sürer)
-- `POST /api/billing/resume` — iptali geri alır
-- `PATCH /api/billing/payment-method` — kartı günceller
-- `POST /api/billing/webhook` — ödeme sağlayıcısı webhook'u (JWT değil; imza + ham gövde ile doğrulanır)
 
 ## Redis Cache Stratejisi
 
@@ -319,108 +305,6 @@ npm install        # kökte, bir kez — husky commit-msg hook'unu kurar
 git commit -m "feat(places): add sorting by rating"   # ✅ geçer
 git commit -m "add sorting"                            # ❌ reddedilir (scope yok, type yok)
 ```
-
-## Social Feed Modülü
-
-Instagram benzeri bir sosyal medya bölümü. Mevcut Modular Monolith + Clean Architecture yapısını bozmadan, tamamen ayrı bir `modules/social` modülü olarak eklenmiştir (kendi `domain` / `application` / `infrastructure` katmanlarıyla). Frontend'de `/sosyal` altında yaşar; çalışan ana sayfa (`/`) değiştirilmemiştir.
-
-**Özellikler**
-
-- **Gönderi**: Çoklu fotoğraf (galeri, en fazla 10) + açıklama (caption) ile paylaşım; kendi gönderini düzenleme/silme.
-- **Akış (Feed)**: En yeni üstte; "Tümü" veya "Takip ettiklerim" olarak filtrelenir. Redis ile cache'lenir.
-- **Beğeni**: Bir kullanıcı bir gönderiyi yalnızca bir kez beğenebilir (`@@unique([postId, userId])`); tekrar tıklayınca kaldırır; sayaç anlık güncellenir (optimistic UI).
-- **Yorum**: Yorum yaz / kendi yorumunu sil; kullanıcı adı + profil fotoğrafı + tarih gösterilir.
-- **Profil**: Biyografi + türetilmiş istatistikler (gönderi sayısı, toplam beğeni, takipçi/takip sayısı). İstatistikler sayaç sütununda saklanmaz, okuma anında hesaplanır.
-- **Takip**: Takip et / takipten çık; profilde Follow/Following butonu.
-- **Bildirim**: "gönderini beğendi / yorum yaptı / seni takip etti" — okundu/okunmadı durumuyla. Mevcut mekan bildirim sisteminden ayrı bir `SocialNotification` tablosu kullanır (mevcut `Notification` tamamen mekan bağlamlıdır, bozulmamıştır).
-- **Admin**: Uygunsuz gönderi/yorum silme, kullanıcıyı sosyal bölümde engelleme (engelli kullanıcı paylaşım/yorum/beğeni/takip yapamaz).
-
-**Auth & Premium erişim**: Mevcut JWT sistemi aynen kullanılır. **Sosyal bölümün tamamı yalnızca aktif RemoteRehber Pro üyelerine açıktır** — feed, fotoğraf paylaşımı, beğeni, yorum, takip ve bildirimler premium olmayanlara kapalıdır. Backend'de `/api/social` router'ı `requireAuth` + `requirePremium` (`modules/billing/infrastructure/premium.guard.js`) ile korunur; premium olmayan istek `403` ve `{ premiumRequired: true }` alır. Frontend'de sosyal sayfalar `PremiumRoute` ile sarılıdır; giriş yapmamış kullanıcı `/giris`'e, premium olmayan kullanıcı `/pro` (Premium) sayfasına yönlendirilir. (Admin sosyal moderasyon route'ları `/api/admin/social` altında ayrıdır ve premium gerektirmez.)
-
-**Dosya yükleme**: Fotoğraflar backend'in `uploads/social/` klasörüne yüklenir (multer). Storage bir arayüz (`StorageProvider`) arkasına soyutlanmıştır; ileride AWS S3 / Cloudinary'ye geçmek için yalnızca yeni bir provider yazıp `SOCIAL_STORAGE_DRIVER` ile seçmek yeterlidir — service/controller değişmez.
-
-**Cache**: Feed yanıtları Redis'te cache'lenir (`social:feed:*`, TTL 30s). Yeni gönderi, yorum veya beğeni geldiğinde ilgili feed cache'leri invalide edilir. İzleyiciye özel "beğendim mi" bilgisi cache'lenmez, her istekte taze hesaplanır — böylece aynı sayfa tüm kullanıcılarca paylaşılabilir.
-
-**Şema (Prisma)**: `SocialProfile`, `SocialPost`, `PostImage`, `PostLike`, `PostComment`, `Follow`, `SocialNotification` tabloları; tümü doğru foreign key ve `onDelete: Cascade` kurallarıyla `User`/`SocialPost`'a bağlıdır (bir kullanıcı/gönderi silinince ilgili beğeni/yorum/görsel/bildirim de silinir). Şema `prisma db push` ile uygulanır (proje migration dosyası kullanmaz; `backend/Dockerfile` başlangıçta `prisma db push` çalıştırır).
-
-**API uç noktaları**
-
-| Metot & Yol | Açıklama | Auth |
-|---|---|---|
-| `POST /api/social/posts` | Gönderi oluştur (multipart, `images[]` + `caption`) | ✅ |
-| `GET /api/social/feed?following=&page=` | Akış (tümü / takip edilenler, sayfalı) | opsiyonel |
-| `GET /api/social/posts/:id` | Tek gönderi | opsiyonel |
-| `PATCH /api/social/posts/:id` | Açıklamayı düzenle | ✅ (sahibi) |
-| `DELETE /api/social/posts/:id` | Gönderi sil | ✅ (sahibi) |
-| `POST /api/social/posts/:id/like` · `DELETE .../like` | Beğen / beğeniyi kaldır | ✅ |
-| `GET /api/social/posts/:id/comments` · `POST .../comments` | Yorumları listele / ekle | ekleme ✅ |
-| `DELETE /api/social/comments/:id` | Yorum sil | ✅ (sahibi) |
-| `POST /api/social/follow/:userId` · `DELETE .../follow/:userId` | Takip et / bırak | ✅ |
-| `GET /api/social/profile/:userId` | Profil + gönderiler | opsiyonel |
-| `PATCH /api/social/profile` | Kendi biyografini güncelle | ✅ |
-| `GET /api/social/notifications` · `.../unread-count` | Bildirimler / okunmamış sayısı | ✅ |
-| `PATCH /api/social/notifications/:id/read` | Bildirimi okundu işaretle | ✅ |
-| `DELETE /api/admin/social/posts/:id` · `.../comments/:id` | Admin: gönderi/yorum sil | ✅ admin |
-| `PATCH /api/admin/social/users/:userId/block` · `.../unblock` | Admin: kullanıcı engelle/kaldır | ✅ admin |
-
-> Not: `:userId` profil tanımlayıcısı olarak kullanıcının **id**'sidir. Mevcut `User` modelinde ayrı bir `username` alanı olmadığı için (çalışan model bozulmadan) profil id üzerinden çözümlenir.
-
-**Frontend sayfaları**: `/sosyal` (Feed), `/sosyal/gonderi/:id` (Post Detail), `/sosyal/kullanici/:userId` (Profil), `/sosyal/bildirimler` (Bildirimler). Bileşenler: `PostCard`, `LikeButton`, `CommentSection`, `CommentItem`, `CreatePostModal`, `PhotoUploader`, `ProfileHeader`, `NotificationDropdown` (`components/social/`). Tailwind ile responsive; mobilde Instagram benzeri tek sütun akış, desktopta ortalanmış modern yerleşim.
-
-## Premium / Billing Modülü (RemoteRehber Pro)
-
-"RemoteRehber Pro" ücretli üyelik sistemi. Mevcut Modular Monolith + Clean Architecture yapısını bozmadan, tamamen ayrı bir `modules/billing` modülü olarak eklenmiştir (kendi `domain` / `application` / `infrastructure` katmanlarıyla). Mevcut JWT sistemi aynen kullanılır. Fiyat **25 TL/ay**; deneme sonrası kayıtlı kartla otomatik başlar ve her ay otomatik yenilenir.
-
-**Abonelik durumları (`SubscriptionStatus` enum)** — premium erişim kararı framework'ten bağımsız saf domain mantığıdır (`domain/subscription-status.js` → `hasPremiumAccess`); hem `requirePremium` middleware'i hem de yenileme durum makinesi bu tek kuralı tüketir.
-
-| Durum | Anlamı | Premium erişim |
-|---|---|---|
-| `FREE` | Abonelik yok (varsayılan) | ✗ |
-| `TRIAL` | 15 günlük ücretsiz deneme aktif | ✓ (deneme bitene kadar) |
-| `ACTIVE` | Ücretli abonelik aktif | ✓ |
-| `PAST_DUE` | Ödeme başarısız, ek süre (grace) içinde tekrar deneniyor | ✗ |
-| `CANCELED` | İptal edildi ama dönem sonuna kadar sürüyor | ✓ (dönem sonuna kadar) |
-| `EXPIRED` | Süresi dolmuş / erişim kapalı | ✗ |
-
-**Şema (Prisma)**: `Subscription` (kullanıcı başına 1:1), `SubscriptionHistory` (durum geçişleri audit log'u), `PaymentMethod`, `Payment`, `Invoice`, `TrialUsage` (denemenin tek kullanımlık olması için `userId @unique`). Tümü `User`'a doğru foreign key + cascade kurallarıyla bağlıdır. Para tutarları **kuruş** cinsinden `Int`'tir (`2500` = 25,00 TL — float yuvarlama hatalarından kaçınmak için). Şema `prisma db push` ile uygulanır (proje migration dosyası kullanmaz; `backend/Dockerfile` başlangıçta `prisma db push` çalıştırır).
-
-**Ücretsiz deneme**: `POST /api/billing/start-trial` 15 günlük denemeyi başlatır; her kullanıcı yalnızca **bir kez** (TrialUsage `userId @unique`; ikinci deneme → `409`). Durum `TRIAL` olur, başlangıç/bitiş tarihleri kaydedilir ve profil sayfasında kalan gün gösterilir.
-
-**Abonelik yaşam döngüsü**: Kullanıcı kart ekleyip **abone olur** (`create-subscription`), **iptal eder** (dönem sonuna kadar premium sürer), **tekrar başlatır** (`resume`) veya **kartını günceller**. Deneme/dönem sonlarını ve otomatik yenilemeyi periyodik bir iş yürütür (`jobs/subscriptionRenewer.js` → `billing.service.processRenewals`, server.js'te başlatılır):
-
-| Mevcut durum | Koşul | Yeni durum |
-|---|---|---|
-| `TRIAL` | Deneme bitti + kart var | `ACTIVE` (tahsil edildi, yeni dönem) |
-| `TRIAL` | Deneme bitti + kart yok / iptal | `EXPIRED` |
-| `ACTIVE` | Dönem bitti + tahsilat başarılı | `ACTIVE` (yenilendi) |
-| `ACTIVE` | Dönem bitti + tahsilat başarısız | `PAST_DUE` |
-| `PAST_DUE` | Tekrar deneme başarılı | `ACTIVE` |
-| `PAST_DUE` | Ek süre (3 gün) doldu | `EXPIRED` |
-| `CANCELED` | Dönem sonu geldi | `EXPIRED` |
-
-Her tahsilatta `Invoice` (paid) + `Payment` (succeeded) ve her geçişte `SubscriptionHistory` kaydı oluşur.
-
-**Ödeme soyutlaması**: Ödeme kodu iş mantığına gömülmez; sağlayıcı-bağımsız `PaymentProvider` arayüzü (`infrastructure/payments/`) arkasında yaşar (`createCustomer`, `attachPaymentMethod`, `charge`, `cancelSubscription`, `resumeSubscription`, `verifyWebhook`, ... — hepsi normalize edilmiş şekiller döner). Varsayılan implementasyon **Stripe**'tır (`StripePaymentProvider`; `stripe` SDK'sı ve gizli anahtarlar yalnızca çağrıldığında lazy yüklenir, anahtar yoksa uygulama sorunsuz çalışır). Yerel geliştirme/testte gerçek Stripe olmadan tüm yaşam döngüsünü denemek için `PAYMENT_PROVIDER=manual` (`ManualPaymentProvider`) kullanılabilir — üretimde kullanılmamalıdır. **iyzico / PayTR / Shopier** eklemek için yeni bir implementasyon + `payments/index.js`'te bir `case` yeterlidir; service/controller değişmez.
-
-**Güvenlik**: Tam kart numarası (PAN) / CVV **hiçbir zaman** backend'e gelmez ve saklanmaz. Kart istemcide tokenize edilir (üretimde Stripe.js; frontend'de `CardModal` bunu simüle eder); backend yalnızca sağlayıcı token'ını (`providerPaymentMethodId`) ve gösterim için güvenli meta veriyi (`brand`, `last4`, `expMonth/Year`) kullanır. **Webhook** (`POST /api/billing/webhook`) imzayla doğrulanır; imza doğrulaması **ham gövde (raw body)** gerektirdiğinden `app.js`'te yalnızca bu yola `express.json()`'dan önce `express.raw` uygulanır (diğer uçlar normal JSON parser'ı kullanır). Sağlayıcı yapılandırılmamışsa webhook pasiftir ve 200 ile onaylanır.
-
-**Premium erişim (gating)**: Sosyal bölümün tamamı yalnızca aktif premium üyelere açıktır — `/api/social` router'ı `requireAuth` + `requirePremium` (`modules/billing/infrastructure/premium.guard.js`) ile korunur; premium olmayan istek `403` + `{ premiumRequired: true }` alır ve frontend'de `PremiumRoute` kullanıcıyı `/pro` sayfasına yönlendirir.
-
-**API uç noktaları**
-
-| Metot & Yol | Açıklama | Auth |
-|---|---|---|
-| `GET /api/billing/status` | Abonelik durumu (`isPremium`, `trialDaysLeft`, `trialUsed`, `lastPaymentAt`, dönem tarihleri) | ✅ |
-| `GET /api/billing/history` | Durum geçişleri geçmişi | ✅ |
-| `GET /api/billing/invoices` | Kullanıcının faturaları | ✅ |
-| `POST /api/billing/start-trial` | 15 günlük ücretsiz deneme (tek kullanımlık) | ✅ |
-| `POST /api/billing/create-subscription` (alias `/subscribe`) | Kart ekleyip ücretli aboneliği başlatır | ✅ |
-| `POST /api/billing/cancel` · `/resume` | İptal / iptali geri alma | ✅ |
-| `PATCH /api/billing/payment-method` | Kartı günceller | ✅ |
-| `POST /api/billing/webhook` | Ödeme sağlayıcısı webhook'u | imza |
-| `GET /api/admin/billing/stats` · `/users` · `POST /users/:userId/cancel` | Admin: istatistik, premium kullanıcı listesi, manuel iptal | admin |
-
-**Frontend**: `/pro` (RemoteRehber Pro tanıtım + fiyat kartı), profil sayfasında **Abonelik sekmesi** (plan, durum, başlangıç/deneme bitiş/son ödeme/sonraki ödeme tarihleri, faturalar + abone ol / iptal / tekrar başlat / kartı güncelle), admin panelinde **Premium Yönetimi** (toplam premium, aktif abonelik, deneme kullananlar, iptal edilenler, aylık gelir, yaklaşan yenilemeler + kullanıcı listesi ve manuel iptal). Bileşenler: `ProPage`, `ProfilePage` (Abonelik sekmesi), `components/billing/CardModal`, `PremiumRoute`. Tailwind ile responsive.
 
 ## Future Improvements
 

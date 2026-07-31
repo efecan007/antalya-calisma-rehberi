@@ -13,9 +13,6 @@ const suggestionsRoutes = require('./modules/suggestions/infrastructure/suggesti
 const adminRoutes = require('./modules/admin/infrastructure/admin.routes');
 const commentsRoutes = require('./modules/comments/infrastructure/comments.routes');
 const notificationsRoutes = require('./modules/notifications/infrastructure/notifications.routes');
-const socialRoutes = require('./modules/social/infrastructure/social.routes');
-const jobsRoutes = require('./modules/jobs/infrastructure/jobs.routes');
-const billingRoutes = require('./modules/billing/infrastructure/billing.routes');
 const { listRegions } = require('./modules/places/infrastructure/places.controller');
 const { notFoundHandler, errorMiddleware } = require('./common/filters/error.filter');
 const { generalLimiter } = require('./common/guards/rate-limit.guard');
@@ -25,10 +22,6 @@ function createApp() {
   const app = express();
 
   app.use(cors({ origin: parseCorsOrigin(process.env.CORS_ORIGIN) }));
-  // Ödeme sağlayıcısı webhook imza doğrulaması ham gövde (raw body) gerektirir;
-  // bu yüzden yalnızca bu yola, express.json()'dan ÖNCE raw parser uygulanır.
-  // Diğer tüm uçlar normal JSON parser'ı kullanmaya devam eder.
-  app.use('/api/billing/webhook', express.raw({ type: '*/*' }));
   app.use(express.json());
   app.use(requestLogger);
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -46,9 +39,6 @@ function createApp() {
   app.use('/api/admin', adminRoutes);
   app.use('/api/comments', commentsRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/social', socialRoutes);
-  app.use('/api/jobs', jobsRoutes);
-  app.use('/api/billing', billingRoutes);
 
   app.use(notFoundHandler);
   app.use(errorMiddleware);

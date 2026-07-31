@@ -3,7 +3,6 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import NotificationBell from './NotificationBell';
-import NotificationDropdown from './social/NotificationDropdown';
 import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -46,19 +45,6 @@ export default function Navbar() {
           <NavLink to="/yayin" className={linkClass}>
             {t('nav.stream')}
           </NavLink>
-          <NavLink to="/sosyal" className={linkClass}>
-            {t('nav.social')}
-          </NavLink>
-          <NavLink
-            to="/pro"
-            className={({ isActive }) =>
-              `px-2.5 py-1 text-sm font-medium rounded-full transition ${
-                isActive ? 'bg-brand-600 text-white' : 'text-brand-700 bg-brand-50 hover:bg-brand-100'
-              }`
-            }
-          >
-            {t('nav.pro')}
-          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass}>
@@ -75,7 +61,6 @@ export default function Navbar() {
               <NavLink to="/profil" className={linkClass}>
                 {user.name}
               </NavLink>
-              <NotificationDropdown />
               <NotificationBell />
               <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-brand-700 transition">
                 {t('nav.logout')}
@@ -132,12 +117,6 @@ export default function Navbar() {
           <NavLink to="/yayin" className={linkClass} onClick={closeMenu}>
             {t('nav.stream')}
           </NavLink>
-          <NavLink to="/sosyal" className={linkClass} onClick={closeMenu}>
-            {t('nav.social')}
-          </NavLink>
-          <NavLink to="/pro" className={linkClass} onClick={closeMenu}>
-            {t('nav.pro')}
-          </NavLink>
           {user ? (
             <>
               <NavLink to="/mekan-ekle" className={linkClass} onClick={closeMenu}>
@@ -155,7 +134,6 @@ export default function Navbar() {
                 {user.name}
               </NavLink>
               <div className="flex items-center gap-3 py-1">
-                <NotificationDropdown />
                 <NotificationBell />
               </div>
               <button onClick={handleLogout} className="text-left text-sm text-gray-600 hover:text-brand-700 py-1">
