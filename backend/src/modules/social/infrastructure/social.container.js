@@ -6,7 +6,7 @@
 const prisma = require('../../../database/prisma.client');
 const cache = require('../../cache/cache.service');
 const { decorateService } = require('../../../common/logging/withLogging');
-const { storage } = require('./storage');
+const { storage } = require('../../../common/storage');
 const SocialPrismaRepository = require('./social.repository');
 const SocialService = require('../application/social.service');
 

@@ -1,8 +1,10 @@
 const { commentsService } = require('./comments.container');
+const { storage } = require('../../../common/storage');
 
-function buildPhotoUrl(req) {
+async function buildPhotoUrl(req) {
   if (!req.file) return undefined;
-  return `/uploads/comments/${req.file.filename}`;
+  const { url } = await storage.save(req.file, { folder: 'comments' });
+  return url;
 }
 
 async function createComment(req, res, next) {
@@ -11,7 +13,7 @@ async function createComment(req, res, next) {
       placeId: Number(req.params.id),
       userId: req.user.id,
       content: req.body.content,
-      photoUrl: buildPhotoUrl(req),
+      photoUrl: await buildPhotoUrl(req),
     });
     res.status(201).json(comment);
   } catch (err) {
@@ -37,7 +39,7 @@ async function updateComment(req, res, next) {
       commentId: Number(req.params.id),
       userId: req.user.id,
       content: req.body.content,
-      photoUrl: buildPhotoUrl(req),
+      photoUrl: await buildPhotoUrl(req),
       removePhoto: req.body.removePhoto === 'true' || req.body.removePhoto === true,
     });
     res.json(updated);

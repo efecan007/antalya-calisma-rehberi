@@ -1,11 +1,11 @@
 const { socialService, storage } = require('./social.container');
 
 // Yüklenen dosyaları storage soyutlaması üzerinden herkese açık URL'lere çevirir.
-// Local sürücüde bu `/uploads/social/...` yolunu üretir; ileride S3/Cloudinary'de
-// controller değişmeden yalnızca storage sağlayıcısı değişir.
+// Local sürücüde `/uploads/social/...`, firebase sürücüsünde Firebase Storage URL'i
+// üretir; controller değişmeden yalnızca storage sağlayıcısı değişir.
 async function resolveImageUrls(files) {
   if (!files?.length) return [];
-  const results = await Promise.all(files.map((file) => storage.save(file)));
+  const results = await Promise.all(files.map((file) => storage.save(file, { folder: 'social' })));
   return results.map((result) => result.url);
 }
 

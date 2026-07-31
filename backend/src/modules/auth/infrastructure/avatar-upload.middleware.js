@@ -1,20 +1,11 @@
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
 const { ValidationError } = require('../../../common/errors');
 
-const uploadDir = path.join(__dirname, '../../../../uploads/avatars');
-fs.mkdirSync(uploadDir, { recursive: true });
-
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${req.user.id}-${Date.now()}${ext}`);
-  },
-});
+// memoryStorage: dosya buffer olarak alınır, ardından storage soyutlaması (local
+// disk veya Firebase Storage) üzerinden kalıcılaştırılır.
+const storage = multer.memoryStorage();
 
 function fileFilter(_req, file, cb) {
   if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {

@@ -1,6 +1,7 @@
 const { hashPassword, comparePassword } = require('../../../common/security/password');
 const { signToken } = require('../../../common/security/jwt');
 const { verifyIdToken, createCustomToken } = require('../../../common/security/firebase-admin');
+const { storage } = require('../../../common/storage');
 const { userRepository } = require('../../users/infrastructure/users.container');
 const AuthService = require('../application/auth.service');
 const linkedin = require('./linkedin.client');
@@ -49,7 +50,7 @@ async function updateAvatar(req, res, next) {
     if (!req.file) {
       return res.status(400).json({ message: 'Fotoğraf zorunludur' });
     }
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const { url: avatarUrl } = await storage.save(req.file, { folder: 'avatars' });
     const user = await authService.updateAvatar({ userId: req.user.id, avatarUrl });
     res.json(user);
   } catch (err) {

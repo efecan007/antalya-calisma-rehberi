@@ -1,14 +1,16 @@
-// Firebase Admin SDK ağır bir bağımlılıktır ve yalnızca sosyal giriş sırasında
-// gerekir; bu yüzden hem paketin kendisi hem de uygulama örneği ilk kullanımda
-// (lazy) yüklenir. Böylece backend başlangıcı hızlanır ve Firebase'e dokunmayan
-// testler bu paketi hiç yüklemez.
+// Firebase Admin SDK ağır bir bağımlılıktır ve yalnızca sosyal giriş / dosya
+// depolama sırasında gerekir; bu yüzden hem paketin kendisi hem de uygulama örneği
+// ilk kullanımda (lazy) yüklenir. Böylece backend başlangıcı hızlanır ve Firebase'e
+// dokunmayan testler bu paketi hiç yüklemez.
+let appInstance;
 let authInstance;
 
-function getAuthInstance() {
-  if (authInstance) return authInstance;
+// Firebase Admin uygulamasını (aynı kimlik bilgileriyle) tek sefer başlatır; hem
+// Auth hem Storage bu örneği paylaşır. storageBucket, dosya depolama için gerekir.
+function getApp() {
+  if (appInstance) return appInstance;
 
   const { initializeApp, cert, getApps } = require('firebase-admin/app');
-  const { getAuth } = require('firebase-admin/auth');
 
   const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
@@ -31,11 +33,28 @@ function getAuthInstance() {
     );
   }
 
-  const app = getApps().length
+  // Depolama kovası: açıkça verilmezse proje kimliğinden türetilir. Yeni projelerde
+  // kova adı `<project>.firebasestorage.app` olabilir; bu durumda FIREBASE_STORAGE_BUCKET
+  // ile açıkça ayarlanmalıdır.
+  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET?.trim() || `${projectId}.appspot.com`;
+
+  appInstance = getApps().length
     ? getApps()[0]
-    : initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-  authInstance = getAuth(app);
+    : initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), storageBucket });
+  return appInstance;
+}
+
+function getAuthInstance() {
+  if (authInstance) return authInstance;
+  const { getAuth } = require('firebase-admin/auth');
+  authInstance = getAuth(getApp());
   return authInstance;
+}
+
+// Dosya depolama için varsayılan Storage kovasını döner.
+function getStorageBucket() {
+  const { getStorage } = require('firebase-admin/storage');
+  return getStorage(getApp()).bucket();
 }
 
 // İstemciden gelen Firebase kimlik jetonunu doğrular ve çözümlenmiş payload'ı döner.
@@ -49,4 +68,4 @@ function createCustomToken(uid, additionalClaims) {
   return getAuthInstance().createCustomToken(uid, additionalClaims);
 }
 
-module.exports = { verifyIdToken, createCustomToken };
+module.exports = { verifyIdToken, createCustomToken, getStorageBucket };

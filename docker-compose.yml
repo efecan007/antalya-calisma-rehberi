@@ -50,6 +50,10 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      # Dosya depolama sürücüsü: local (varsayılan) veya firebase. Production'da
+      # (Render gibi geçici disk) firebase kullanılmalı; kova adı aşağıda.
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      FIREBASE_STORAGE_BUCKET: ${FIREBASE_STORAGE_BUCKET:-}
       # Google Places API — mekan detaylarını zenginleştirir, tanımlı değilse
       # özellik sessizce devre dışı kalır.
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
