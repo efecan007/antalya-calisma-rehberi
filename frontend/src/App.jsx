@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import useAutoReloadOnNewVersion from './hooks/useAutoReloadOnNewVersion';
 import Navbar from './components/Navbar';
 import CheckInReminderBanner from './components/CheckInReminderBanner';
@@ -80,6 +81,7 @@ export default function App() {
       </main>
       <CheckInReminderBanner />
       <PlaceMatchBubble />
+      <Analytics />
     </div>
   );
 }
