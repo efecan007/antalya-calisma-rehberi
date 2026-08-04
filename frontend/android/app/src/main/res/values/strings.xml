@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Antalya Çalışma Rehberi</string>
+    <string name="title_activity_main">Antalya Çalışma Rehberi</string>
+    <string name="package_name">com.remoterehber.antalya</string>
+    <string name="custom_url_scheme">com.remoterehber.antalya</string>
+</resources>

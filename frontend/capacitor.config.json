@@ -1,0 +1,13 @@
+{
+  "appId": "com.remoterehber.antalya",
+  "appName": "Antalya Çalışma Rehberi",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    }
+  }
+}
