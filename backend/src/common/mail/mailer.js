@@ -1,11 +1,60 @@
 const nodemailer = require('nodemailer');
 const logger = require('../logging/logger');
 
-// Basit SMTP tabanlı e-posta gönderici. Gmail dahil herhangi bir SMTP sağlayıcısıyla
-// çalışır (Gmail için 2FA + "uygulama şifresi" gerekir). SMTP yapılandırılmamışsa
-// gönderim sessizce atlanır ve (production dışında) link log'a düşer — böylece
-// yerel geliştirme e-posta sunucusu olmadan da test edilebilir (Google Places
-// entegrasyonunun eksik key ile sessizce devre dışı kalması gibi).
+// E-posta gönderici. İki sürücü destekler ve otomatik seçer:
+//   1. Brevo (HTTP API, port 443) — BREVO_API_KEY tanımlıysa. Render gibi giden
+//      SMTP portlarını (25/465/587) engelleyen platformlarda tek çalışan yol budur.
+//   2. SMTP (nodemailer) — SMTP_HOST/USER/PASS tanımlıysa (yerel geliştirme, Gmail).
+// İkisi de yoksa gönderim sessizce atlanır ve (production dışında) link log'a düşer,
+// böylece e-posta sağlayıcısı olmadan da akış test edilebilir.
+
+// MAIL_FROM "Ad <email>" veya "email" biçiminde olabilir; ad ve e-postayı ayırır.
+function parseFrom() {
+  const raw = process.env.MAIL_FROM || process.env.SMTP_USER || 'no-reply@localhost';
+  const match = raw.match(/^\s*(.*?)\s*<\s*([^>]+)\s*>\s*$/);
+  if (match) {
+    return { name: match[1] || undefined, email: match[2] };
+  }
+  return { name: undefined, email: raw.trim() };
+}
+
+// --- Brevo (HTTP API) ---
+function isBrevoConfigured() {
+  return Boolean(process.env.BREVO_API_KEY);
+}
+
+async function sendViaBrevo({ to, subject, html, text }) {
+  const from = parseFrom();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { email: from.email, ...(from.name ? { name: from.name } : {}) },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+      }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Brevo API ${res.status}: ${body}`);
+    }
+    return { skipped: false, driver: 'brevo' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// --- SMTP (nodemailer) ---
 function buildTransport() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
@@ -23,8 +72,7 @@ function buildTransport() {
       : port === 465;
 
   // Zaman aşımları: SMTP erişilemezse (ör. platform giden bağlantıyı engelliyorsa)
-  // sonsuza kadar askıda kalmak yerine hızlıca hata ver. Böylece kayıt akışı
-  // (e-posta arka planda gönderildiği için) etkilenmez ve loglarda gerçek hata görünür.
+  // sonsuza kadar askıda kalmak yerine hızlıca hata ver.
   return nodemailer.createTransport({
     host,
     port,
@@ -47,29 +95,33 @@ function getTransport() {
   return cachedTransport;
 }
 
-function isConfigured() {
-  return getTransport() !== null;
+async function sendViaSmtp({ to, subject, html, text }) {
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'no-reply@localhost';
+  await getTransport().sendMail({ from, to, subject, html, text });
+  return { skipped: false, driver: 'smtp' };
 }
 
-function getFrom() {
-  return process.env.MAIL_FROM || process.env.SMTP_USER || 'no-reply@localhost';
+function isConfigured() {
+  return isBrevoConfigured() || getTransport() !== null;
 }
 
 async function sendMail({ to, subject, html, text }) {
-  const transport = getTransport();
-  if (!transport) {
-    logger.warn(
-      `SMTP yapılandırılmadığı için e-posta gönderilemedi (to=${to}, subject="${subject}"). ` +
-        'SMTP_HOST/SMTP_USER/SMTP_PASS tanımlayın.'
-    );
-    if (process.env.NODE_ENV !== 'production') {
-      logger.info(`[DEV] E-posta içeriği (gönderilmedi):\n${text || html}`);
-    }
-    return { skipped: true };
+  // Brevo öncelikli: production'da (Render) tek çalışan yol.
+  if (isBrevoConfigured()) {
+    return sendViaBrevo({ to, subject, html, text });
+  }
+  if (getTransport()) {
+    return sendViaSmtp({ to, subject, html, text });
   }
 
-  await transport.sendMail({ from: getFrom(), to, subject, html, text });
-  return { skipped: false };
+  logger.warn(
+    `E-posta sağlayıcısı yapılandırılmadığı için gönderilemedi (to=${to}, subject="${subject}"). ` +
+      'BREVO_API_KEY veya SMTP_HOST/SMTP_USER/SMTP_PASS tanımlayın.'
+  );
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info(`[DEV] E-posta içeriği (gönderilmedi):\n${text || html}`);
+  }
+  return { skipped: true };
 }
 
 module.exports = { sendMail, isConfigured };

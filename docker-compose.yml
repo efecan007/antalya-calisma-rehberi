@@ -57,9 +57,10 @@ services:
       # Google Places API — mekan detaylarını zenginleştirir, tanımlı değilse
       # özellik sessizce devre dışı kalır.
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
-      # E-posta doğrulama için SMTP. Tanımlı değilse kayıt doğrulama e-postası
-      # gönderilmez (dev'de link log'a düşer). APP_URL, doğrulama linkindeki
-      # frontend adresidir; tanımsızsa CORS_ORIGIN'in ilk değeri kullanılır.
+      # E-posta doğrulama. BREVO_API_KEY tanımlıysa Brevo HTTP API (prod), yoksa SMTP
+      # (yerel Gmail) kullanılır; ikisi de yoksa dev'de link log'a düşer. APP_URL,
+      # doğrulama linkindeki frontend adresidir; tanımsızsa CORS_ORIGIN'in ilki kullanılır.
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-}

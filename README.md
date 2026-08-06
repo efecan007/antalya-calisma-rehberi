@@ -193,7 +193,7 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 - `POST /api/auth/login`, `GET /api/auth/me`
 - `POST /api/auth/logout` (JWT gerekli) — JWT stateless olduğu için sunucuda iptal edilecek bir oturum yok; istemcinin token'ı bıraktığını doğrulayan `204` döner.
 
-E-posta gönderimi `nodemailer` ile SMTP üzerinden yapılır (`common/mail/mailer.js`). `SMTP_HOST/SMTP_USER/SMTP_PASS` tanımlı değilse doğrulama e-postası gönderilmez ve (production dışında) link log'a düşer — böylece yerel geliştirme e-posta sunucusu olmadan da test edilebilir. Doğrulama linkindeki frontend adresi `APP_URL` (yoksa `CORS_ORIGIN`'in ilk değeri) ile belirlenir.
+E-posta gönderimi (`common/mail/mailer.js`) iki sürücü destekler ve otomatik seçer: `BREVO_API_KEY` tanımlıysa **Brevo HTTP API** (port 443) — Render gibi giden SMTP portlarını (25/465/587) engelleyen platformlarda tek çalışan yol; aksi halde `SMTP_HOST/SMTP_USER/SMTP_PASS` ile **SMTP** (`nodemailer`, yerel geliştirme/Gmail). İkisi de tanımlı değilse doğrulama e-postası gönderilmez ve (production dışında) link log'a düşer — böylece yerel geliştirme e-posta sağlayıcısı olmadan da test edilebilir. Kayıt akışı e-postayı **beklemeden** (arka planda) gönderir; SMTP/HTTP çağrısına zaman aşımı eklidir, böylece sağlayıcı yavaş/erişilemez olsa bile kayıt yanıtı anında döner. Doğrulama linkindeki frontend adresi `APP_URL` (yoksa `CORS_ORIGIN`'in ilk değeri) ile belirlenir.
 
 **Places**
 - `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `minInternetSpeed`, `outletLevel`, `noiseLevel`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner
