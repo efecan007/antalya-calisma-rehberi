@@ -10,8 +10,11 @@ export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const [status, setStatus] = useState('verifying'); // verifying | success | error
-  // React 18 StrictMode dev'de effect'i iki kez çalıştırır; token tek kullanımlık
-  // olduğu için doğrulamayı yalnızca bir kez tetikleriz.
+  // Doğrulamayı yalnızca mount'ta bir kez çalıştırırız. Bağımlılık dizisi bilerek
+  // boştur: useAuth'tan gelen verifyEmail her render'da yeni bir referans olduğundan
+  // (useCallback yok) onu bağımlılığa koymak, başarıdaki setUser -> re-render zincirinde
+  // effect'in yeniden çalışıp önceki çağrıyı iptal etmesine ve ekranın "doğrulanıyor"da
+  // kalmasına yol açıyordu. startedRef, StrictMode'un dev'deki çift çağrısına karşı korur.
   const startedRef = useRef(false);
 
   useEffect(() => {
@@ -23,21 +26,16 @@ export default function VerifyEmailPage() {
       return;
     }
 
-    let cancelled = false;
     verifyEmail(token)
       .then(() => {
-        if (cancelled) return;
         setStatus('success');
         setTimeout(() => navigate('/'), 1500);
       })
       .catch(() => {
-        if (!cancelled) setStatus('error');
+        setStatus('error');
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token, verifyEmail, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="h-full flex items-center justify-center bg-gray-50">
