@@ -3,13 +3,31 @@ const { signToken } = require('../../../common/security/jwt');
 const { verifyIdToken, createCustomToken } = require('../../../common/security/firebase-admin');
 const { storage } = require('../../../common/storage');
 const { userRepository } = require('../../users/infrastructure/users.container');
+const prisma = require('../../../database/prisma.client');
+const PendingRegistrationRepository = require('./pending-registration.repository');
+const {
+  generateVerificationToken,
+  hashVerificationToken,
+  sendVerificationEmail,
+} = require('./verification-email');
 const AuthService = require('../application/auth.service');
 const linkedin = require('./linkedin.client');
 const { decorateService } = require('../../../common/logging/withLogging');
 const logger = require('../../../common/logging/logger');
 
+const pendingRegistrationRepository = new PendingRegistrationRepository(prisma);
+
 const authService = decorateService(
-  new AuthService({ userRepository, hashPassword, comparePassword, signToken }),
+  new AuthService({
+    userRepository,
+    pendingRegistrationRepository,
+    hashPassword,
+    comparePassword,
+    signToken,
+    generateVerificationToken,
+    hashVerificationToken,
+    sendVerificationEmail,
+  }),
   'AuthService'
 );
 
@@ -21,7 +39,27 @@ function getFrontendUrl() {
 async function register(req, res, next) {
   try {
     const result = await authService.register(req.body);
-    res.status(201).json(result);
+    // Bekleyen doğrulama durumunda oturum yok (201 yerine 202 Accepted döneriz);
+    // OAuth hesabına şifre eklenen durumda ise doğrudan oturum açılır (201).
+    res.status(result.pendingVerification ? 202 : 201).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function verifyEmail(req, res, next) {
+  try {
+    const result = await authService.verifyEmail({ token: req.body.token });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function resendVerification(req, res, next) {
+  try {
+    const result = await authService.resendVerification({ email: req.body.email });
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -162,6 +200,8 @@ async function linkedinCallback(req, res) {
 
 module.exports = {
   register,
+  verifyEmail,
+  resendVerification,
   login,
   me,
   updateAvatar,

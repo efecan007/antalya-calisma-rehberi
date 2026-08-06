@@ -7,6 +7,7 @@ const { PrismaClient } = require('@prisma/client');
 const { createApp } = require('../../src/app');
 const { invalidate } = require('../../src/modules/cache/cache.service');
 const { getRedisClient } = require('../../src/modules/cache/redis.client');
+const { createVerifiedUser } = require('./helpers/auth');
 
 const prisma = new PrismaClient();
 const app = createApp();
@@ -21,21 +22,22 @@ let placeId;
 let rejectedPlaceId;
 
 beforeAll(async () => {
-  const userRes = await request(app)
-    .post('/api/auth/register')
-    .send({ email: userEmail, password: 'Sifre123!', name: 'E2E Suggestions Kullanici' });
-  userToken = userRes.body.token;
-  userId = userRes.body.user.id;
+  const user = await createVerifiedUser(app, prisma, {
+    email: userEmail,
+    password: 'Sifre123!',
+    name: 'E2E Suggestions Kullanici',
+  });
+  userToken = user.token;
+  userId = user.id;
 
-  const adminRes = await request(app)
-    .post('/api/auth/register')
-    .send({ email: adminEmail, password: 'Sifre123!', name: 'E2E Suggestions Admin' });
-  adminId = adminRes.body.user.id;
-  await prisma.user.update({ where: { id: adminId }, data: { role: 'ADMIN' } });
-  const adminLogin = await request(app)
-    .post('/api/auth/login')
-    .send({ email: adminEmail, password: 'Sifre123!' });
-  adminToken = adminLogin.body.token;
+  const admin = await createVerifiedUser(app, prisma, {
+    email: adminEmail,
+    password: 'Sifre123!',
+    name: 'E2E Suggestions Admin',
+    role: 'ADMIN',
+  });
+  adminId = admin.id;
+  adminToken = admin.token;
 });
 
 afterAll(async () => {

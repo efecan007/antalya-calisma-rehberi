@@ -26,7 +26,7 @@ backend/src/
 ├── database/
 │   └── prisma.client.js       paylaşılan PrismaClient instance'ı
 └── modules/
-    ├── auth/                   register / login / me (JWT üretimi) — auth.service.js
+    ├── auth/                   register (e-posta doğrulamalı) / verify-email / login / me (JWT üretimi) — auth.service.js
     ├── users/                  User entity + repository (auth ve diğer modüller tüketir)
     ├── places/                 Place entity + temel CRUD — places.service.js
     ├── suggestions/            mekan önerisi onay/red akışı — suggestions.service.js
@@ -65,7 +65,7 @@ Bu proje bilinçli olarak **Modular Monolith** olarak tasarlandı, ayrı servisl
 
 E2E dosyaları isim bazında modül sınırlarını takip eder ve aşağıdaki alanları kapsar:
 
-- `auth.e2e.test.js` — **register/login**, yanlış şifre, `/me`, **logout**, token olmadan `/me`+`logout` 401
+- `auth.e2e.test.js` — **register (202 pending)** → **verify-email** ile hesap oluşturma → login, doğrulanmamış hesapla giriş 401, yanlış şifre, `/me`, **logout**, token olmadan `/me`+`logout` 401
 - `places.e2e.test.js` — **place create/list/detail** (admin-only create, 403 for non-admin, `GET /:id` detay + 404), PATCH/DELETE yetkilendirmesi, **review create** (`POST /:id/reviews`) + `GET /:id/reviews`
 - `suggestions.e2e.test.js` — öneri gönderme, admin onay/red, **admin authorization** (token'sız 401 + yanlış rol 403)
 - `favorites.e2e.test.js` — **favorite add/remove** + listeleme döngüsü
@@ -187,8 +187,13 @@ Frontend http://localhost:5173 adresinde çalışır ve `/api` isteklerini Vite 
 ## API Uç Noktaları
 
 **Auth**
-- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- `POST /api/auth/register` — Hesabı **hemen oluşturmaz**; bilgileri bir bekleyen kayıt tablosuna (24 saat geçerli, tek kullanımlık token ile) yazar ve kullanıcının e-postasına doğrulama linki gönderir. `202 { pendingVerification: true, email }` döner (oturum açılmaz). İstisna: e-postası bir OAuth sağlayıcıyla zaten doğrulanmış şifresiz bir hesap varsa şifre doğrudan eklenir ve `201 { token, user }` ile oturum açılır.
+- `POST /api/auth/verify-email` `{ token }` — E-postadaki linkteki token ile gerçek `User` satırını oluşturur, bekleyen kaydı siler ve `{ token, user }` ile oturum açar.
+- `POST /api/auth/resend-verification` `{ email }` — Doğrulama e-postasını yeniden gönderir; hesap durumunu sızdırmamak için her koşulda `{ ok: true }` döner.
+- `POST /api/auth/login`, `GET /api/auth/me`
 - `POST /api/auth/logout` (JWT gerekli) — JWT stateless olduğu için sunucuda iptal edilecek bir oturum yok; istemcinin token'ı bıraktığını doğrulayan `204` döner.
+
+E-posta gönderimi `nodemailer` ile SMTP üzerinden yapılır (`common/mail/mailer.js`). `SMTP_HOST/SMTP_USER/SMTP_PASS` tanımlı değilse doğrulama e-postası gönderilmez ve (production dışında) link log'a düşer — böylece yerel geliştirme e-posta sunucusu olmadan da test edilebilir. Doğrulama linkindeki frontend adresi `APP_URL` (yoksa `CORS_ORIGIN`'in ilk değeri) ile belirlenir.
 
 **Places**
 - `GET /api/places` (query: `region`, `type`, `maxPrice`, `minRating`, `minInternetSpeed`, `outletLevel`, `noiseLevel`, `search`, `sortBy`, `sortOrder`) — yalnızca onaylı mekanları döner

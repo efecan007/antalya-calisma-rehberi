@@ -1,6 +1,8 @@
 const { Router } = require('express');
 const {
   register,
+  verifyEmail,
+  resendVerification,
   login,
   me,
   updateAvatar,
@@ -17,6 +19,8 @@ const { avatarUpload } = require('./avatar-upload.middleware');
 const router = Router();
 
 router.post('/register', authLimiter, register);
+router.post('/verify-email', authLimiter, verifyEmail);
+router.post('/resend-verification', authLimiter, resendVerification);
 router.post('/login', authLimiter, login);
 router.post('/logout', requireAuth, logout);
 router.get('/me', requireAuth, me);

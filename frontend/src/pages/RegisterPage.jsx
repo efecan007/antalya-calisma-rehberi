@@ -6,7 +6,7 @@ import LinkedInLoginButton from '../components/LinkedInLoginButton';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, resendVerification } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -15,19 +15,71 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     try {
-      await register(email, password, name, companyName);
-      navigate('/');
+      const result = await register(email, password, name, companyName);
+      if (result?.pendingVerification) {
+        setPendingEmail(result.email || email);
+      } else {
+        // OAuth hesabına şifre eklendi -> zaten oturum açıldı.
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || t('auth.registerError'));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleResend() {
+    setResending(true);
+    setResent(false);
+    try {
+      await resendVerification(pendingEmail);
+      setResent(true);
+    } catch {
+      // Sessizce yut: yeniden gönderim durumu her koşulda aynı görünmeli.
+      setResent(true);
+    } finally {
+      setResending(false);
+    }
+  }
+
+  if (pendingEmail) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50">
+        <div className="w-full max-w-sm space-y-4 p-7 bg-white rounded-2xl shadow-card text-center">
+          <div className="mx-auto w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-2xl">
+            ✉️
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900">{t('auth.checkEmailTitle')}</h1>
+          <p className="text-sm font-medium text-gray-900 break-all">{pendingEmail}</p>
+          <p className="text-sm text-gray-500">{t('auth.checkEmailBody')}</p>
+          <p className="text-xs text-gray-400">{t('auth.checkEmailSpam')}</p>
+          {resent && <p className="text-sm text-green-600">{t('auth.resent')}</p>}
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resending}
+            className="w-full border border-gray-200 text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            {resending ? t('auth.resending') : t('auth.resend')}
+          </button>
+          <p className="text-sm text-gray-500">
+            <Link to="/giris" className="text-brand-600 hover:underline">
+              {t('auth.goLogin')}
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

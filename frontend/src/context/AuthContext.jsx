@@ -34,10 +34,28 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }
 
+  // Kayıt artık hesabı hemen oluşturmaz: e-posta doğrulaması gerekiyorsa
+  // { pendingVerification: true, email } döner ve oturum AÇILMAZ. (OAuth ile açılmış
+  // şifresiz bir hesaba şifre eklendiği durumda ise token döner ve oturum açılır.)
   async function register(email, password, name, companyName) {
     const { data } = await apiClient.post('/auth/register', { email, password, name, companyName });
+    if (data.token) {
+      localStorage.setItem('wfh_token', data.token);
+      setUser(data.user);
+    }
+    return data;
+  }
+
+  // E-posta doğrulama linkindeki token ile hesabı oluşturur ve oturum açar.
+  async function verifyEmail(token) {
+    const { data } = await apiClient.post('/auth/verify-email', { token });
     localStorage.setItem('wfh_token', data.token);
     setUser(data.user);
+    return data;
+  }
+
+  async function resendVerification(email) {
+    await apiClient.post('/auth/resend-verification', { email });
   }
 
   // İstemci Firebase'e giriş yaptıktan sonra elde ettiği kimlik jetonunu backend'e
@@ -73,7 +91,18 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, loginWithFirebase, logout, updateAvatar, removeAvatar }}
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        verifyEmail,
+        resendVerification,
+        loginWithFirebase,
+        logout,
+        updateAvatar,
+        removeAvatar,
+      }}
     >
       {children}
     </AuthContext.Provider>

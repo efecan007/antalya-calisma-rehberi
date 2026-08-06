@@ -13,6 +13,7 @@ import StreamRoomsPage from './pages/StreamRoomsPage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import LinkedInCallbackPage from './pages/LinkedInCallbackPage';
 import AddPlacePage from './pages/AddPlacePage';
 import ProfilePage from './pages/ProfilePage';
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/giris/linkedin" element={<LinkedInCallbackPage />} />
           <Route path="/kayit" element={<RegisterPage />} />
+          <Route path="/e-posta-dogrula" element={<VerifyEmailPage />} />
           <Route
             path="/mekan-ekle"
             element={

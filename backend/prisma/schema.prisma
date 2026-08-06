@@ -84,6 +84,23 @@ model User {
   @@map("users")
 }
 
+// E-posta doğrulaması bekleyen kayıtlar. Kullanıcı formu doldurduğunda hesap HENÜZ
+// oluşturulmaz; bilgiler burada tutulur ve e-postadaki linke tıklanıp doğrulanınca
+// gerçek User satırı oluşturulup bu kayıt silinir. tokenHash, ham token'ın sha256'sıdır
+// (ham token yalnızca e-posta linkinde bulunur), böylece DB sızıntısı geçerli link vermez.
+model PendingRegistration {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String   @map("full_name")
+  companyName  String?  @map("company_name")
+  tokenHash    String   @unique @map("token_hash")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("pending_registrations")
+}
+
 model Place {
   id              Int         @id @default(autoincrement())
   name            String

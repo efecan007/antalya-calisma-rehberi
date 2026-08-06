@@ -57,6 +57,16 @@ services:
       # Google Places API — mekan detaylarını zenginleştirir, tanımlı değilse
       # özellik sessizce devre dışı kalır.
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
+      # E-posta doğrulama için SMTP. Tanımlı değilse kayıt doğrulama e-postası
+      # gönderilmez (dev'de link log'a düşer). APP_URL, doğrulama linkindeki
+      # frontend adresidir; tanımsızsa CORS_ORIGIN'in ilk değeri kullanılır.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      APP_URL: ${APP_URL:-http://localhost:8080}
     ports:
       - "4000:4000"
     volumes:
