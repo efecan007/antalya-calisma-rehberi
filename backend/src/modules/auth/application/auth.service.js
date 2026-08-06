@@ -86,7 +86,10 @@ class AuthService {
       expiresAt,
     });
 
-    await this.sendVerificationEmail({ email: normalizedEmail, name: name.trim(), token: rawToken });
+    // E-postayı beklemeden gönder: SMTP yavaş/erişilemez olsa bile kayıt yanıtı
+    // anında döner (aksi halde gönderim askıda kalırsa istek de kilitlenir).
+    // sendVerificationEmail içinde hata yakalandığı için promise reddetmez.
+    this.sendVerificationEmail({ email: normalizedEmail, name: name.trim(), token: rawToken });
 
     return { pendingVerification: true, email: normalizedEmail };
   }
@@ -146,7 +149,8 @@ class AuthService {
         tokenHash,
         expiresAt,
       });
-      await this.sendVerificationEmail({ email: normalizedEmail, name: pending.name, token: rawToken });
+      // Beklemeden gönder (register ile aynı gerekçe).
+      this.sendVerificationEmail({ email: normalizedEmail, name: pending.name, token: rawToken });
     }
     return { ok: true };
   }

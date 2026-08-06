@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { sendMail } = require('../../../common/mail/mailer');
+const logger = require('../../../common/logging/logger');
 
 const APP_NAME = 'Antalya Çalışma Rehberi';
 
@@ -63,7 +64,15 @@ async function sendVerificationEmail({ email, name, token }) {
     <p style="margin: 0; font-size: 12px; color: #9ca3af;">Bu bağlantı 24 saat geçerlidir. Bu kaydı siz yapmadıysanız bu e-postayı yok sayabilirsiniz.</p>
   </div>`;
 
-  return sendMail({ to: email, subject, html, text });
+  // Hata durumunda fırlatmaz: kayıt akışı e-postayı arka planda gönderdiği için
+  // gönderim başarısız olsa bile kaydı bozmamalı; hata loglanır, kullanıcı
+  // "tekrar gönder" ile yeniden deneyebilir.
+  try {
+    return await sendMail({ to: email, subject, html, text });
+  } catch (err) {
+    logger.error(`Doğrulama e-postası gönderilemedi (${email})`, err);
+    return { error: true };
+  }
 }
 
 module.exports = {

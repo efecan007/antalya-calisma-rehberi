@@ -22,7 +22,18 @@ function buildTransport() {
       ? process.env.SMTP_SECURE === 'true'
       : port === 465;
 
-  return nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+  // Zaman aşımları: SMTP erişilemezse (ör. platform giden bağlantıyı engelliyorsa)
+  // sonsuza kadar askıda kalmak yerine hızlıca hata ver. Böylece kayıt akışı
+  // (e-posta arka planda gönderildiği için) etkilenmez ve loglarda gerçek hata görünür.
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
 }
 
 let cachedTransport;
